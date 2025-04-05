@@ -8,16 +8,17 @@
 
     <DockPanel>
         <!-- Верхняя панель -->
-        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" 
-                   Background="#f0f0f0" Height="40">
-            <TextBlock Text="LibraryPWF" FontSize="16" FontWeight="Bold"
-                      VerticalAlignment="Center" Margin="10,0"/>
-
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Background="#f0f0f0" Height="40">
+            <TextBlock Text="LibraryPWF" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0"/>
             <Border Background="Transparent" HorizontalAlignment="Stretch"/>
 
+            <!-- Существующая кнопка -->
             <Button x:Name="LoadBooksButton" Content="Книги" Width="80" Margin="0,0,10,0" 
-                   Click="ShowBooksButton_Click"
-                   ToolTip="Показать список книг"/>
+            Click="ShowBooksButton_Click" ToolTip="Показать список книг"/>
+
+            <!-- Новая кнопка -->
+            <Button x:Name="AddBookButton" Content="Добавить книгу" Width="120" Margin="0,0,10,0"
+            Click="AddBookButton_Click" ToolTip="Добавить новую книгу"/>
         </StackPanel>
 
         <!-- StatusBar (добавляем внизу) -->
