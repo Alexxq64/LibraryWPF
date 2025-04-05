@@ -1,62 +1,50 @@
 ﻿using System.Windows;
-using System.Windows.Input;
-using System.Collections.Generic;
 using LibraryWPF.Models;
-using System.Linq; // Добавлено для проверки пустых полей
 
 namespace LibraryWPF
 {
     public partial class AddBookWindow : Window
     {
         private readonly List<Book> _cache;
+        private readonly LibraryDBContext _dbContext;
 
-        public AddBookWindow(List<Book> cache)
+        public AddBookWindow(List<Book> cache, LibraryDBContext dbContext)
         {
             InitializeComponent();
             _cache = cache;
-            // Автозаполнение теперь только если поля пустые
-            TitleTextBox.Text = string.IsNullOrEmpty(TitleTextBox.Text) ? "Игра престолов" : TitleTextBox.Text;
-            AuthorTextBox.Text = string.IsNullOrEmpty(AuthorTextBox.Text) ? "Джордж Мартин" : AuthorTextBox.Text;
+            _dbContext = dbContext;
+            TitleTextBox.Text = "Игра престолов";
+            AuthorTextBox.Text = "Джордж Мартин";
         }
 
         private void ConfirmButton_Click(object sender, RoutedEventArgs e)
         {
-            // Проверка на пустые поля
-            if (string.IsNullOrWhiteSpace(TitleTextBox.Text) ||
-                string.IsNullOrWhiteSpace(AuthorTextBox.Text))
-            {
-                MessageBox.Show("Заполните все поля", "Ошибка",
-                              MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            // Генерация ISBN (пример: "978-3-16-148410-0")
+            string GenerateISBN() => $"{new Random().Next(100, 999)}-{new Random().Next(0, 9)}-{new Random().Next(10, 99)}-{new Random().Next(100000, 999999)}-{new Random().Next(0, 9)}";
 
-            var title = TitleTextBox.Text.Trim();
-            var authorName = AuthorTextBox.Text.Trim();
-
-            // Создаем новую книгу
             var newBook = new Book
             {
-                Title = title,
-                Author = new Author { LastName = authorName }
+                Title = TitleTextBox.Text.Trim(),
+                ISBN = GenerateISBN(), // Заполняем обязательное поле
+                Author = new Author
+                {
+                    FirstName = "Не указано",
+                    LastName = AuthorTextBox.Text.Trim()
+                }
             };
 
-            // Проверяем и инициализируем кэш, если он null
-            if (_cache == null)
+            try
             {
-                MessageBox.Show("Ошибка: кэш не инициализирован", "Ошибка",
-                              MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+                _dbContext.Books.Add(newBook);
+                _dbContext.SaveChanges();
 
-            // Добавляем в кэш
-            _cache.Add(newBook);
-            this.Close();
-        }
-        private void TextBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
+                _cache.Add(newBook);
+                this.DialogResult = true;
+                this.Close();
+            }
+            catch (Exception ex)
             {
-                ConfirmButton_Click(null, null);
+                MessageBox.Show($"Ошибка: {ex.InnerException?.Message ?? ex.Message}");
             }
         }
     }
