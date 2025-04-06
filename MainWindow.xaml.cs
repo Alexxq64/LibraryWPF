@@ -10,193 +10,289 @@ namespace LibraryWPF
     public partial class MainWindow : Window
     {
         private List<Book> _cachedBooks = new List<Book>();
-        private readonly LibraryDBContext _dbContext;
+        private LibraryDBContext _dbContext;
+        private const string DefaultDbName = "LibraryDB";
+        private string _currentDbName = DefaultDbName;
 
         public MainWindow()
         {
-            _dbContext = CreateDbContext();
-            InitializeComponent();
-            LoadBooks();
+            try
+            {
+                InitializeComponent();
+                InitializeApplication();
+            }
+            catch (Exception ex)
+            {
+                HandleCriticalError(ex);
+            }
         }
 
-        // 📌 Инициализация контекста БД
-        private LibraryDBContext CreateDbContext()
+        private void InitializeApplication()
+        {
+            InitializeDefaultDatabase();
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                try
+                {
+                    ShowDatabaseSelectionWindow();
+                    LoadBooks();
+                }
+                catch (Exception ex)
+                {
+                    ShowErrorMessage($"Ошибка загрузки данных: {ex.Message}");
+                }
+            }));
+        }
+
+        private void InitializeDefaultDatabase()
+        {
+            try
+            {
+                _dbContext = CreateDbContext(DefaultDbName);
+
+                if (!_dbContext.Database.CanConnect())
+                {
+                    _dbContext.Database.EnsureCreated();
+                    AddInitialData();
+                    UpdateStatus($"База {DefaultDbName} создана автоматически", "БД: создана");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка инициализации БД: {ex.Message}", ex);
+            }
+        }
+
+        private void ShowDatabaseSelectionWindow()
+        {
+            var chooseDbWindow = new ChooseDbWindow();
+            if (chooseDbWindow.ShowDialog() != true) return;
+
+            try
+            {
+                if (chooseDbWindow.IsCreateNewDb)
+                {
+                    CreateDatabase(chooseDbWindow.NewDbName);
+                }
+                else
+                {
+                    ConnectToExistingDatabase(chooseDbWindow.SelectedDbName);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Ошибка: {ex.Message}\nИспользуется {DefaultDbName}");
+                ConnectToExistingDatabase(DefaultDbName);
+            }
+        }
+
+        private void ConnectToExistingDatabase(string dbName)
+        {
+            _currentDbName = dbName ?? DefaultDbName;
+            _dbContext = CreateDbContext(_currentDbName);
+
+            if (!_dbContext.Database.CanConnect())
+                throw new Exception($"Не удалось подключиться к базе {_currentDbName}");
+
+            UpdateStatus($"Подключено к {_currentDbName}", "БД: подключено");
+        }
+
+        private void CreateDatabase(string dbName)
+        {
+            try
+            {
+                _dbContext = CreateDbContext(dbName);
+                _dbContext.Database.EnsureCreated();
+                AddInitialData();
+                _currentDbName = dbName;
+                UpdateStatus($"База {dbName} создана", "БД: создана");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка создания БД: {ex.Message}", ex);
+            }
+        }
+
+        private LibraryDBContext CreateDbContext(string dbName)
         {
             var optionsBuilder = new DbContextOptionsBuilder<LibraryDBContext>();
-            optionsBuilder.UseSqlServer("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;");
+            optionsBuilder.UseSqlServer(GetConnectionString(dbName));
             return new LibraryDBContext(optionsBuilder.Options);
         }
 
-        // 📥 Загрузка книг (из кэша или БД)
+        private string GetConnectionString(string dbName)
+        {
+            return $"Server=.;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True;";
+        }
+
         private void LoadBooks()
         {
             try
             {
-                ShowLoadingStatus();
+                SetLoadingStatus("Загрузка книг...", "БД: подключение");
 
-                if (TryLoadFromCache())
-                    return;
+                if (TryLoadFromCache()) return;
 
-                LoadFromDatabase();
+                var books = _dbContext.Books
+                    .Include(b => b.Author)
+                    .OrderBy(b => b.Title)
+                    .AsNoTracking()
+                    .ToList();
+
+                _cachedBooks = books;
+                BooksGrid.ItemsSource = books;
+                UpdateStatus($"Загружено {books.Count} книг", $"БД: {_currentDbName}");
             }
             catch (Exception ex)
             {
-                HandleLoadingError(ex);
+                HandleDataLoadingError(ex);
             }
         }
 
-        // ⏳ Отображение статуса загрузки
-        private void ShowLoadingStatus()
-        {
-            StatusText.Text = "Загрузка книг...";
-            DbStatusText.Text = "БД: подключение";
-        }
-
-        // 💾 Попытка загрузки из кэша
         private bool TryLoadFromCache()
         {
-            if (_cachedBooks.Any())
-            {
-                BooksGrid.ItemsSource = _cachedBooks;
-                StatusText.Text = $"Загружено из кэша: {_cachedBooks.Count} книг";
-                DbStatusText.Text = "БД: кэш";
-                return true;
-            }
-            return false;
+            if (!_cachedBooks.Any()) return false;
+
+            BooksGrid.ItemsSource = _cachedBooks;
+            UpdateStatus($"Загружено из кэша: {_cachedBooks.Count} книг", "БД: кэш");
+            return true;
         }
 
-        // 🗃 Загрузка данных из БД
-        private void LoadFromDatabase()
-        {
-            var books = _dbContext.Books
-                .Include(b => b.Author)
-                .OrderBy(b => b.Title)
-                .ToList();
-
-            _cachedBooks = books;
-            BooksGrid.ItemsSource = books;
-            StatusText.Text = $"Загружено {books.Count} книг";
-            DbStatusText.Text = "БД: успешно";
-        }
-
-        // ⚠️ Обработка ошибок загрузки
-        private void HandleLoadingError(Exception ex)
+        private void HandleDataLoadingError(Exception ex)
         {
             if (_cachedBooks.Any())
             {
                 BooksGrid.ItemsSource = _cachedBooks;
-                StatusText.Text = $"Ошибка БД, но есть кэш: {_cachedBooks.Count} книг";
-                DbStatusText.Text = "БД: ошибка (кэш)";
+                UpdateStatus($"Ошибка БД, но есть кэш: {_cachedBooks.Count} книг", "БД: ошибка (кэш)");
             }
             else
             {
-                StatusText.Text = "Ошибка загрузки";
-                DbStatusText.Text = "БД: ошибка";
-                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                UpdateStatus("Ошибка загрузки", "БД: ошибка");
+            }
+            ShowErrorMessage($"Ошибка загрузки данных: {ex.Message}");
+        }
+
+        private void AddInitialData()
+        {
+            if (_dbContext.Books.Any()) return;
+
+            try
+            {
+                var authors = new[]
+                {
+                    new Author { FirstName = "Джордж", LastName = "Мартин" },
+                    new Author { FirstName = "Дж. К.", LastName = "Роулинг" }
+                };
+
+                var books = new[]
+                {
+                    new Book { Title = "Игра престолов", ISBN = "1234567890", Author = authors[0] },
+                    new Book { Title = "Гарри Поттер и философский камень", ISBN = "0987654321", Author = authors[1] }
+                };
+
+                _dbContext.Authors.AddRange(authors);
+                _dbContext.Books.AddRange(books);
+                _dbContext.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка добавления тестовых данных: {ex.Message}", ex);
             }
         }
 
-        // 🔘 Обновление книг по кнопке
+        private void SetLoadingStatus(string status, string dbStatus)
+        {
+            StatusText.Text = status;
+            DbStatusText.Text = dbStatus;
+        }
+
+        private void UpdateStatus(string status, string dbStatus)
+        {
+            StatusText.Text = status;
+            DbStatusText.Text = dbStatus;
+        }
+
+        private void ShowErrorMessage(string message)
+        {
+            MessageBox.Show(message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        private void HandleCriticalError(Exception ex)
+        {
+            MessageBox.Show($"Критическая ошибка приложения: {ex.Message}\nПриложение будет закрыто.",
+                "Фатальная ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            Environment.Exit(1);
+        }
+
         private void ShowBooksButton_Click(object sender, RoutedEventArgs e)
         {
             LoadBooks();
         }
 
-        // ➕ Добавление книги
         private void AddBookButton_Click(object sender, RoutedEventArgs e)
         {
-            var addBookWindow = new AddBookWindow(_cachedBooks, _dbContext);
-            if (addBookWindow.ShowDialog() == true)
+            try
             {
-                RefreshBooksGridAfterAdd();
+                var addBookWindow = new AddBookWindow(_cachedBooks, _dbContext);
+                if (addBookWindow.ShowDialog() == true)
+                {
+                    RefreshBooksGrid();
+                    UpdateStatus($"Добавлена новая книга. Всего: {_cachedBooks.Count}", DbStatusText.Text);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Ошибка при добавлении книги: {ex.Message}");
             }
         }
 
         private void DeleteBookButton_Click(object sender, RoutedEventArgs e)
         {
-            var selectedBook = GetSelectedBook();
-            if (selectedBook == null)
-                return;
-
-            if (!ConfirmDeletion(selectedBook))
-                return;
-
-            if (!TryDeleteBookFromDatabase(selectedBook))
-                return;
-
-            RemoveBookFromCache(selectedBook);
-            RefreshBooksGridAfterDelete();
-        }
-
-
-        private Book? GetSelectedBook()
-        {
-            if (BooksGrid.SelectedItem is Book book)
-                return book;
-
-            MessageBox.Show("Пожалуйста, выберите книгу для удаления.", "Удаление", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return null;
-        }
-
-        private bool ConfirmDeletion(Book book)
-        {
-            var result = MessageBox.Show(
-                $"Вы уверены, что хотите удалить книгу \"{book.Title}\"?",
-                "Подтверждение удаления",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-
-            return result == MessageBoxResult.Yes;
-        }
-
-        private bool TryDeleteBookFromDatabase(Book book)
-        {
             try
             {
+                var selectedBook = BooksGrid.SelectedItem as Book;
+                if (selectedBook == null)
+                {
+                    ShowErrorMessage("Пожалуйста, выберите книгу для удаления");
+                    return;
+                }
+
+                if (MessageBox.Show($"Вы уверены, что хотите удалить книгу \"{selectedBook.Title}\"?",
+                    "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+
                 var bookInDb = _dbContext.Books
                     .Include(b => b.Author)
-                    .FirstOrDefault(b => b.BookID == book.BookID);
+                    .FirstOrDefault(b => b.BookID == selectedBook.BookID);
 
                 if (bookInDb == null)
                 {
-                    MessageBox.Show("Книга не найдена в базе данных.", "Удаление", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return false;
+                    ShowErrorMessage("Книга не найдена в базе данных");
+                    return;
                 }
 
                 _dbContext.Books.Remove(bookInDb);
                 _dbContext.SaveChanges();
-                return true;
+
+                _cachedBooks.Remove(selectedBook);
+                RefreshBooksGrid();
+                UpdateStatus($"Книга удалена. Осталось: {_cachedBooks.Count}", "БД: обновлено");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при удалении: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                return false;
+                ShowErrorMessage($"Ошибка при удалении книги: {ex.Message}");
             }
         }
 
-        private void RemoveBookFromCache(Book book)
-        {
-            _cachedBooks.Remove(book);
-        }
-
-        private void RefreshBooksGridAfterDelete()
+        private void RefreshBooksGrid()
         {
             BooksGrid.ItemsSource = null;
             BooksGrid.ItemsSource = _cachedBooks;
-            StatusText.Text = $"Книга удалена. Осталось: {_cachedBooks.Count}";
-            DbStatusText.Text = "БД: удаление успешно";
         }
 
-
-        // 🔄 Обновление UI после добавления
-        private void RefreshBooksGridAfterAdd()
-        {
-            BooksGrid.ItemsSource = null;
-            BooksGrid.ItemsSource = _cachedBooks;
-            StatusText.Text = $"Добавлена новая книга. Всего: {_cachedBooks.Count}";
-        }
-
-        // 🧹 Очистка ресурсов при закрытии
         protected override void OnClosed(EventArgs e)
         {
             _dbContext?.Dispose();
