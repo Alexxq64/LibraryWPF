@@ -112,6 +112,51 @@ namespace LibraryWPF
             }
         }
 
+        private void DeleteBookButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (BooksGrid.SelectedItem is not Book selectedBook)
+            {
+                MessageBox.Show("Пожалуйста, выберите книгу для удаления.", "Удаление", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var result = MessageBox.Show($"Вы уверены, что хотите удалить книгу \"{selectedBook.Title}\"?",
+                                         "Подтверждение удаления",
+                                         MessageBoxButton.YesNo,
+                                         MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            try
+            {
+                // Загружаем книгу с автором из БД, чтобы гарантировать удаление
+                var bookToDelete = _dbContext.Books
+                    .Include(b => b.Author)
+                    .FirstOrDefault(b => b.BookID == selectedBook.BookID);
+
+                if (bookToDelete == null)
+                {
+                    MessageBox.Show("Книга не найдена в базе данных.");
+                    return;
+                }
+
+                _dbContext.Books.Remove(bookToDelete);
+                _dbContext.SaveChanges();
+
+                _cachedBooks.Remove(selectedBook);
+                BooksGrid.ItemsSource = null;
+                BooksGrid.ItemsSource = _cachedBooks;
+
+                StatusText.Text = $"Книга удалена. Осталось: {_cachedBooks.Count}";
+                DbStatusText.Text = "БД: удаление успешно";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при удалении: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+
         // 🔄 Обновление UI после добавления
         private void RefreshBooksGridAfterAdd()
         {

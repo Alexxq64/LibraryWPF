@@ -19,6 +19,9 @@
             <!-- Новая кнопка -->
             <Button x:Name="AddBookButton" Content="Добавить книгу" Width="120" Margin="0,0,10,0"
             Click="AddBookButton_Click" ToolTip="Добавить новую книгу"/>
+            <Button x:Name="DeleteBookButton" Content="Удалить книгу"
+            Click="DeleteBookButton_Click"
+            Margin="5"/>
         </StackPanel>
 
         <!-- StatusBar (добавляем внизу) -->
