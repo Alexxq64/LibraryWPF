@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using LibraryWPF.Models;
 
@@ -15,18 +16,35 @@ namespace LibraryWPF
             InitializeComponent();
             _cache = cache;
             _dbContext = dbContext;
-            FillDefaultInput(); // Заполняем тестовые данные
+            FillAuthorsComboBox(); // Заполняем ComboBox с авторами при инициализации окна
         }
 
-        // 📝 Заполнение полей по умолчанию
-        private void FillDefaultInput()
+        // 📝 Заполнение ComboBox с авторами
+        private void FillAuthorsComboBox()
         {
-            TitleTextBox.Text = "Игра престолов";
-            AuthorFirstNameTextBox.Text = "Джордж";
-            AuthorLastNameTextBox.Text = "Мартин";
+            var authors = _dbContext.Authors.ToList(); // Загружаем всех авторов из базы данных
+            var formattedAuthors = authors.Select(a => new
+            {
+                Author = a,
+                Name = $"{a.FirstName} {a.LastName}" // Форматируем имя и фамилию для отображения
+            }).ToList();
+
+            AuthorComboBox.ItemsSource = formattedAuthors;
+            AuthorComboBox.DisplayMemberPath = "Name";
+            AuthorComboBox.SelectedValuePath = "Author"; // Устанавливаем путь для получения данных
         }
 
-        // ✅ Обработчик кнопки подтверждения
+        // ✅ Обработчик кнопки "Добавить автора"
+        private void AddAuthorButton_Click(object sender, RoutedEventArgs e)
+        {
+            var addAuthorWindow = new AddAuthorWindow(_dbContext); // Открываем окно добавления автора
+            if (addAuthorWindow.ShowDialog() == true) // Если автор успешно добавлен
+            {
+                FillAuthorsComboBox(); // Обновляем список авторов в ComboBox
+            }
+        }
+
+        // ✅ Обработчик кнопки "Добавить книгу"
         private void ConfirmButton_Click(object sender, RoutedEventArgs e)
         {
             if (!AreInputsValid())
@@ -35,55 +53,43 @@ namespace LibraryWPF
                 return;
             }
 
-            var cachedBook = CreateCachedBook();
-            var dbBook = CreateDbBook();
+            var selectedAuthor = AuthorComboBox.SelectedValue as Author; // Получаем выбранного автора
+
+            if (selectedAuthor == null)
+            {
+                MessageBox.Show("Выберите автора");
+                return;
+            }
+
+            var book = CreateDbBook(selectedAuthor); // Создаем книгу с выбранным автором
 
             try
             {
-                SaveBookToDatabase(dbBook);
-                _cache.Add(cachedBook);
+                SaveBookToDatabase(book); // Сохраняем книгу в базе данных
+                _cache.Add(book); // Добавляем книгу в кэш
                 DialogResult = true;
                 Close();
             }
             catch (Exception ex)
             {
-                ShowErrorMessage(ex);
+                ShowErrorMessage(ex); // Показываем сообщение об ошибке
             }
         }
 
         // 📌 Проверка введённых данных
         private bool AreInputsValid()
         {
-            return !string.IsNullOrWhiteSpace(TitleTextBox.Text) &&
-                   !string.IsNullOrWhiteSpace(AuthorFirstNameTextBox.Text) &&
-                   !string.IsNullOrWhiteSpace(AuthorLastNameTextBox.Text);
+            return !string.IsNullOrWhiteSpace(TitleTextBox.Text);
         }
 
-        // 🔄 Создание книги для отображения (кэш)
-        private Book CreateCachedBook()
-        {
-            return new Book
-            {
-                Title = TitleTextBox.Text.Trim(),
-                Author = new Author
-                {
-                    LastName = AuthorLastNameTextBox.Text.Trim()
-                }
-            };
-        }
-
-        // 💾 Создание полной книги для БД
-        private Book CreateDbBook()
+        // 🔄 Создание полной книги для БД
+        private Book CreateDbBook(Author author)
         {
             return new Book
             {
                 Title = TitleTextBox.Text.Trim(),
                 ISBN = GenerateISBN(),
-                Author = new Author
-                {
-                    FirstName = AuthorFirstNameTextBox.Text.Trim(),
-                    LastName = AuthorLastNameTextBox.Text.Trim()
-                }
+                Author = author // Присваиваем выбранного автора
             };
         }
 

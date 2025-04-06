@@ -114,46 +114,77 @@ namespace LibraryWPF
 
         private void DeleteBookButton_Click(object sender, RoutedEventArgs e)
         {
-            if (BooksGrid.SelectedItem is not Book selectedBook)
-            {
-                MessageBox.Show("Пожалуйста, выберите книгу для удаления.", "Удаление", MessageBoxButton.OK, MessageBoxImage.Warning);
+            var selectedBook = GetSelectedBook();
+            if (selectedBook == null)
                 return;
-            }
 
-            var result = MessageBox.Show($"Вы уверены, что хотите удалить книгу \"{selectedBook.Title}\"?",
-                                         "Подтверждение удаления",
-                                         MessageBoxButton.YesNo,
-                                         MessageBoxImage.Question);
+            if (!ConfirmDeletion(selectedBook))
+                return;
 
-            if (result != MessageBoxResult.Yes) return;
+            if (!TryDeleteBookFromDatabase(selectedBook))
+                return;
 
+            RemoveBookFromCache(selectedBook);
+            RefreshBooksGridAfterDelete();
+        }
+
+
+        private Book? GetSelectedBook()
+        {
+            if (BooksGrid.SelectedItem is Book book)
+                return book;
+
+            MessageBox.Show("Пожалуйста, выберите книгу для удаления.", "Удаление", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return null;
+        }
+
+        private bool ConfirmDeletion(Book book)
+        {
+            var result = MessageBox.Show(
+                $"Вы уверены, что хотите удалить книгу \"{book.Title}\"?",
+                "Подтверждение удаления",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            return result == MessageBoxResult.Yes;
+        }
+
+        private bool TryDeleteBookFromDatabase(Book book)
+        {
             try
             {
-                // Загружаем книгу с автором из БД, чтобы гарантировать удаление
-                var bookToDelete = _dbContext.Books
+                var bookInDb = _dbContext.Books
                     .Include(b => b.Author)
-                    .FirstOrDefault(b => b.BookID == selectedBook.BookID);
+                    .FirstOrDefault(b => b.BookID == book.BookID);
 
-                if (bookToDelete == null)
+                if (bookInDb == null)
                 {
-                    MessageBox.Show("Книга не найдена в базе данных.");
-                    return;
+                    MessageBox.Show("Книга не найдена в базе данных.", "Удаление", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
                 }
 
-                _dbContext.Books.Remove(bookToDelete);
+                _dbContext.Books.Remove(bookInDb);
                 _dbContext.SaveChanges();
-
-                _cachedBooks.Remove(selectedBook);
-                BooksGrid.ItemsSource = null;
-                BooksGrid.ItemsSource = _cachedBooks;
-
-                StatusText.Text = $"Книга удалена. Осталось: {_cachedBooks.Count}";
-                DbStatusText.Text = "БД: удаление успешно";
+                return true;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка при удалении: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
             }
+        }
+
+        private void RemoveBookFromCache(Book book)
+        {
+            _cachedBooks.Remove(book);
+        }
+
+        private void RefreshBooksGridAfterDelete()
+        {
+            BooksGrid.ItemsSource = null;
+            BooksGrid.ItemsSource = _cachedBooks;
+            StatusText.Text = $"Книга удалена. Осталось: {_cachedBooks.Count}";
+            DbStatusText.Text = "БД: удаление успешно";
         }
 
 
