@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System;
+using System.Collections.Generic;
+using System.Windows;
 using LibraryWPF.Models;
 
 namespace LibraryWPF
@@ -13,39 +15,96 @@ namespace LibraryWPF
             InitializeComponent();
             _cache = cache;
             _dbContext = dbContext;
-            TitleTextBox.Text = "Игра престолов";
-            AuthorTextBox.Text = "Джордж Мартин";
+            FillDefaultInput(); // Заполняем тестовые данные
         }
 
+        // 📝 Заполнение полей по умолчанию
+        private void FillDefaultInput()
+        {
+            TitleTextBox.Text = "Игра престолов";
+            AuthorFirstNameTextBox.Text = "Джордж";
+            AuthorLastNameTextBox.Text = "Мартин";
+        }
+
+        // ✅ Обработчик кнопки подтверждения
         private void ConfirmButton_Click(object sender, RoutedEventArgs e)
         {
-            // Генерация ISBN (пример: "978-3-16-148410-0")
-            string GenerateISBN() => $"{new Random().Next(100, 999)}-{new Random().Next(0, 9)}-{new Random().Next(10, 99)}-{new Random().Next(100000, 999999)}-{new Random().Next(0, 9)}";
-
-            var newBook = new Book
+            if (!AreInputsValid())
             {
-                Title = TitleTextBox.Text.Trim(),
-                ISBN = GenerateISBN(), // Заполняем обязательное поле
-                Author = new Author
-                {
-                    FirstName = "Не указано",
-                    LastName = AuthorTextBox.Text.Trim()
-                }
-            };
+                MessageBox.Show("Заполните все обязательные поля");
+                return;
+            }
+
+            var cachedBook = CreateCachedBook();
+            var dbBook = CreateDbBook();
 
             try
             {
-                _dbContext.Books.Add(newBook);
-                _dbContext.SaveChanges();
-
-                _cache.Add(newBook);
-                this.DialogResult = true;
-                this.Close();
+                SaveBookToDatabase(dbBook);
+                _cache.Add(cachedBook);
+                DialogResult = true;
+                Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка: {ex.InnerException?.Message ?? ex.Message}");
+                ShowErrorMessage(ex);
             }
+        }
+
+        // 📌 Проверка введённых данных
+        private bool AreInputsValid()
+        {
+            return !string.IsNullOrWhiteSpace(TitleTextBox.Text) &&
+                   !string.IsNullOrWhiteSpace(AuthorFirstNameTextBox.Text) &&
+                   !string.IsNullOrWhiteSpace(AuthorLastNameTextBox.Text);
+        }
+
+        // 🔄 Создание книги для отображения (кэш)
+        private Book CreateCachedBook()
+        {
+            return new Book
+            {
+                Title = TitleTextBox.Text.Trim(),
+                Author = new Author
+                {
+                    LastName = AuthorLastNameTextBox.Text.Trim()
+                }
+            };
+        }
+
+        // 💾 Создание полной книги для БД
+        private Book CreateDbBook()
+        {
+            return new Book
+            {
+                Title = TitleTextBox.Text.Trim(),
+                ISBN = GenerateISBN(),
+                Author = new Author
+                {
+                    FirstName = AuthorFirstNameTextBox.Text.Trim(),
+                    LastName = AuthorLastNameTextBox.Text.Trim()
+                }
+            };
+        }
+
+        // 🧠 Генерация случайного ISBN
+        private string GenerateISBN()
+        {
+            var random = new Random();
+            return $"{random.Next(100, 999)}-{random.Next(1000000, 9999999)}";
+        }
+
+        // 💽 Сохраняем книгу в базу данных
+        private void SaveBookToDatabase(Book book)
+        {
+            _dbContext.Books.Add(book);
+            _dbContext.SaveChanges();
+        }
+
+        // ⚠️ Показываем сообщение об ошибке
+        private void ShowErrorMessage(Exception ex)
+        {
+            MessageBox.Show($"Ошибка сохранения: {ex.InnerException?.Message ?? ex.Message}");
         }
     }
 }
