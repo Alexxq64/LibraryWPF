@@ -40,9 +40,19 @@ namespace LibraryWPF
                 Environment.Exit(0);
                 return;
             }
+
             _currentUser = logRegWindow.LoggedInUser;
 
-            // 3. Загрузка книг
+            // 3. Проверка прав и переключение на AdminWindow при необходимости
+            if (_currentUser.IsAdmin)
+            {
+                var adminWindow = new AdminWindow(_dbContext);
+                adminWindow.Show();
+                Close(); // закрываем MainWindow, если админ
+                return;
+            }
+
+            // 4. Загрузка данных для обычного пользователя
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 try
@@ -55,6 +65,7 @@ namespace LibraryWPF
                 }
             }));
         }
+
 
 
         private void InitializeDefaultDatabase()

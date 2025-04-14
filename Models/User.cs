@@ -40,6 +40,9 @@ public partial class User
     [Column(TypeName = "datetime")]
     public DateTime? LastLoginDate { get; set; }
 
+    // 🔽 Новое поле для роли администратора
+    public bool IsAdmin { get; set; } = false;
+
     [InverseProperty("User")]
     public virtual ICollection<ReadingHistory> ReadingHistories { get; set; } = new List<ReadingHistory>();
 
