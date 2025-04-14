@@ -13,6 +13,7 @@ namespace LibraryWPF
         private LibraryDBContext _dbContext;
         private const string DefaultDbName = "LibraryDB";
         private string _currentDbName = DefaultDbName;
+        private User _currentUser;
 
         public MainWindow()
         {
@@ -29,13 +30,23 @@ namespace LibraryWPF
 
         private void InitializeApplication()
         {
-            InitializeDefaultDatabase();
+            // 1. Выбор базы данных
+            ShowDatabaseSelectionWindow(); // включает создание и подключение к БД
 
+            // 2. Авторизация/регистрация
+            var logRegWindow = new LogRegWindow(_dbContext);
+            if (logRegWindow.ShowDialog() != true)
+            {
+                Environment.Exit(0);
+                return;
+            }
+            _currentUser = logRegWindow.LoggedInUser;
+
+            // 3. Загрузка книг
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 try
                 {
-                    ShowDatabaseSelectionWindow();
                     LoadBooks();
                 }
                 catch (Exception ex)
@@ -44,6 +55,7 @@ namespace LibraryWPF
                 }
             }));
         }
+
 
         private void InitializeDefaultDatabase()
         {
