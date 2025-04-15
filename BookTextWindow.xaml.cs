@@ -1,17 +1,13 @@
-﻿using LibraryWPF.Models;
-using System.Windows;
+﻿using System.Windows;
 
 namespace LibraryWPF
 {
     public partial class BookTextWindow : Window
     {
-        public BookTextWindow(Book book)
+        public BookTextWindow(string bookText)
         {
             InitializeComponent();
-            Title = book.Title;
-            BookTextBox.Text = string.IsNullOrWhiteSpace(book.Text)
-                ? "Текст отсутствует."
-                : book.Text;
+            BookTextBox.Text = bookText; // Устанавливаем текст книги в TextBox
         }
     }
 }

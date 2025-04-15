@@ -9,7 +9,6 @@
                  VerticalScrollBarVisibility="Auto"
                  HorizontalScrollBarVisibility="Auto"
                  IsReadOnly="True"
-                 FontSize="14"
-                 Text="Загрузка..." />
+                 FontSize="14" />
     </Grid>
 </Window>

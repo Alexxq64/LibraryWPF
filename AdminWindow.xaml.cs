@@ -44,10 +44,20 @@ namespace LibraryWPF
             MessageBox.Show("Кнопка 'Удалить' нажата", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        // Заглушка для кнопки "Читать"
+        // Обработчик для кнопки "Читать"
         private void ReadBookButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Кнопка 'Читать' нажата", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+            var selectedBook = BooksGrid.SelectedItem as Book;
+
+            if (selectedBook == null)
+            {
+                MessageBox.Show("Пожалуйста, выберите книгу для чтения.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // Открываем окно чтения с текстом выбранной книги
+            var bookTextWindow = new BookTextWindow(selectedBook.Text);
+            bookTextWindow.ShowDialog(); // Ожидаем закрытия окна перед возвратом к текущему
         }
     }
 }

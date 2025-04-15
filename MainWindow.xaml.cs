@@ -328,11 +328,16 @@ namespace LibraryWPF
             var selectedBook = BooksGrid.SelectedItem as Book;
             if (selectedBook == null) return;
 
-            var window = new EditBookWindow(_dbContext, selectedBook);
-            if (window.ShowDialog() == true)
+            if (string.IsNullOrWhiteSpace(selectedBook.Text))
             {
-                LoadBooks(); // Обновим список книг после редактирования
+                MessageBox.Show("У этой книги пока нет текста.", "Нет содержимого", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
             }
+
+            var window = new BookTextWindow(selectedBook.Text);
+            window.ShowDialog();
         }
+
+
     }
 }
