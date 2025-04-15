@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using Microsoft.EntityFrameworkCore;
 using LibraryWPF.Models;
 
@@ -30,10 +32,8 @@ namespace LibraryWPF
 
         private void InitializeApplication()
         {
-            // 1. Выбор базы данных
-            ShowDatabaseSelectionWindow(); // включает создание и подключение к БД
+            ShowDatabaseSelectionWindow();
 
-            // 2. Авторизация/регистрация
             var logRegWindow = new LogRegWindow(_dbContext);
             if (logRegWindow.ShowDialog() != true)
             {
@@ -43,21 +43,20 @@ namespace LibraryWPF
 
             _currentUser = logRegWindow.LoggedInUser;
 
-            // 3. Проверка прав и переключение на AdminWindow при необходимости
             if (_currentUser.IsAdmin)
             {
                 var adminWindow = new AdminWindow(_dbContext);
                 adminWindow.Show();
-                Close(); // закрываем MainWindow, если админ
+                Close();
                 return;
             }
 
-            // 4. Загрузка данных для обычного пользователя
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 try
                 {
                     LoadBooks();
+                    LoadMyBooks();
                     BooksGrid.MouseDoubleClick += BooksGrid_MouseDoubleClick;
                 }
                 catch (Exception ex)
@@ -65,27 +64,6 @@ namespace LibraryWPF
                     ShowErrorMessage($"Ошибка загрузки данных: {ex.Message}");
                 }
             }));
-        }
-
-
-
-        private void InitializeDefaultDatabase()
-        {
-            try
-            {
-                _dbContext = CreateDbContext(DefaultDbName);
-
-                if (!_dbContext.Database.CanConnect())
-                {
-                    _dbContext.Database.EnsureCreated();
-                    AddInitialData();
-                    UpdateStatus($"База {DefaultDbName} создана автоматически", "БД: создана");
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Ошибка инициализации БД: {ex.Message}", ex);
-            }
         }
 
         private void ShowDatabaseSelectionWindow()
@@ -174,6 +152,25 @@ namespace LibraryWPF
             }
         }
 
+        private void LoadMyBooks()
+        {
+            try
+            {
+                var history = _dbContext.ReadingHistories
+                    .Include(r => r.Book)
+                        .ThenInclude(b => b.Author)
+                    .Where(r => r.UserID == _currentUser.UserID)
+                    .OrderByDescending(r => r.LastReadDate ?? r.StartDate)
+                    .ToList();
+
+                MyBooksGrid.ItemsSource = history;
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Ошибка загрузки \"моих книг\": {ex.Message}");
+            }
+        }
+
         private bool TryLoadFromCache()
         {
             if (!_cachedBooks.Any()) return false;
@@ -225,6 +222,91 @@ namespace LibraryWPF
             }
         }
 
+        private void AddToMyBooks_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedBook = BooksGrid.SelectedItem as Book;
+            if (selectedBook == null)
+            {
+                ShowErrorMessage("Сначала выберите книгу.");
+                return;
+            }
+
+            bool alreadyExists = _dbContext.ReadingHistories
+                .Any(r => r.UserID == _currentUser.UserID && r.BookID == selectedBook.BookID);
+
+            if (alreadyExists)
+            {
+                MessageBox.Show("Эта книга уже есть в вашем списке.", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var entry = new ReadingHistory
+            {
+                UserID = _currentUser.UserID,
+                BookID = selectedBook.BookID,
+                StartDate = DateTime.Now,
+                LastReadDate = DateTime.Now,
+                ProgressPercent = 0,
+                IsFinished = false
+            };
+
+            _dbContext.ReadingHistories.Add(entry);
+            _dbContext.SaveChanges();
+            LoadMyBooks();
+        }
+
+        private void ReadMyBook_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = MyBooksGrid.SelectedItem as ReadingHistory;
+            if (selected?.Book == null || string.IsNullOrWhiteSpace(selected.Book.Text))
+            {
+                ShowErrorMessage("Нет текста для отображения.");
+                return;
+            }
+
+            selected.LastReadDate = DateTime.Now;
+            _dbContext.SaveChanges();
+
+            var window = new BookTextWindow(selected.Book.Text, selected.Book.Title);
+            window.ShowDialog();
+
+            LoadMyBooks();
+        }
+
+        private void RemoveFromMyBooks_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = MyBooksGrid.SelectedItem as ReadingHistory;
+            if (selected == null)
+            {
+                ShowErrorMessage("Выберите книгу для удаления.");
+                return;
+            }
+
+            _dbContext.ReadingHistories.Remove(selected);
+            _dbContext.SaveChanges();
+            LoadMyBooks();
+        }
+
+        private void BooksGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var selectedBook = BooksGrid.SelectedItem as Book;
+            if (selectedBook == null) return;
+
+            if (string.IsNullOrWhiteSpace(selectedBook.Text))
+            {
+                MessageBox.Show("У этой книги пока нет текста.", "Нет содержимого", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var window = new BookTextWindow(selectedBook.Text, selectedBook.Title);
+            window.ShowDialog();
+        }
+
+        private void MyBooksGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            ReadMyBook_Click(sender, e);
+        }
+
         private void SetLoadingStatus(string status, string dbStatus)
         {
             StatusText.Text = status;
@@ -249,95 +331,10 @@ namespace LibraryWPF
             Environment.Exit(1);
         }
 
-        private void ShowBooksButton_Click(object sender, RoutedEventArgs e)
-        {
-            LoadBooks();
-        }
-
-        private void AddBookButton_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var window = new EditBookWindow(_dbContext, null);
-                if (window.ShowDialog() == true)
-                {
-                    LoadBooks(); // Перезагрузка с базы
-                }
-            }
-            catch (Exception ex)
-            {
-                ShowErrorMessage($"Ошибка при добавлении книги: {ex.Message}");
-            }
-        }
-
-
-        private void DeleteBookButton_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var selectedBook = BooksGrid.SelectedItem as Book;
-                if (selectedBook == null)
-                {
-                    ShowErrorMessage("Пожалуйста, выберите книгу для удаления");
-                    return;
-                }
-
-                if (MessageBox.Show($"Вы уверены, что хотите удалить книгу \"{selectedBook.Title}\"?",
-                    "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
-                {
-                    return;
-                }
-
-                var bookInDb = _dbContext.Books
-                    .Include(b => b.Author)
-                    .FirstOrDefault(b => b.BookID == selectedBook.BookID);
-
-                if (bookInDb == null)
-                {
-                    ShowErrorMessage("Книга не найдена в базе данных");
-                    return;
-                }
-
-                _dbContext.Books.Remove(bookInDb);
-                _dbContext.SaveChanges();
-
-                _cachedBooks.Remove(selectedBook);
-                RefreshBooksGrid();
-                UpdateStatus($"Книга удалена. Осталось: {_cachedBooks.Count}", "БД: обновлено");
-            }
-            catch (Exception ex)
-            {
-                ShowErrorMessage($"Ошибка при удалении книги: {ex.Message}");
-            }
-        }
-
-        private void RefreshBooksGrid()
-        {
-            LoadBooks();
-        }
-
-
         protected override void OnClosed(EventArgs e)
         {
             _dbContext?.Dispose();
             base.OnClosed(e);
         }
-
-        private void BooksGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            var selectedBook = BooksGrid.SelectedItem as Book;
-            if (selectedBook == null) return;
-
-            if (string.IsNullOrWhiteSpace(selectedBook.Text))
-            {
-                MessageBox.Show("У этой книги пока нет текста.", "Нет содержимого", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            var window = new BookTextWindow(selectedBook.Text);
-            window.ShowDialog();
-        }
-
-
     }
 }
