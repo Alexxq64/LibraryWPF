@@ -10,7 +10,20 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Название" Binding="{Binding Title}" />
                         <DataGridTextColumn Header="ISBN" Binding="{Binding ISBN}" />
-                        <DataGridTextColumn Header="Автор" Binding="{Binding Author.LastName}" />
+                        <DataGridTextColumn Header="Автор">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text">
+                                        <Setter.Value>
+                                            <MultiBinding StringFormat="{}{0} {1}">
+                                                <Binding Path="Author.FirstName" />
+                                                <Binding Path="Author.LastName" />
+                                            </MultiBinding>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>

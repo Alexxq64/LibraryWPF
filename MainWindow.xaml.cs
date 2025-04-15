@@ -58,6 +58,7 @@ namespace LibraryWPF
                 try
                 {
                     LoadBooks();
+                    BooksGrid.MouseDoubleClick += BooksGrid_MouseDoubleClick;
                 }
                 catch (Exception ex)
                 {
@@ -257,11 +258,10 @@ namespace LibraryWPF
         {
             try
             {
-                var addBookWindow = new AddBookWindow(_cachedBooks, _dbContext);
-                if (addBookWindow.ShowDialog() == true)
+                var window = new EditBookWindow(_dbContext, null);
+                if (window.ShowDialog() == true)
                 {
-                    RefreshBooksGrid();
-                    UpdateStatus($"Добавлена новая книга. Всего: {_cachedBooks.Count}", DbStatusText.Text);
+                    LoadBooks(); // Перезагрузка с базы
                 }
             }
             catch (Exception ex)
@@ -269,6 +269,7 @@ namespace LibraryWPF
                 ShowErrorMessage($"Ошибка при добавлении книги: {ex.Message}");
             }
         }
+
 
         private void DeleteBookButton_Click(object sender, RoutedEventArgs e)
         {
@@ -312,14 +313,26 @@ namespace LibraryWPF
 
         private void RefreshBooksGrid()
         {
-            BooksGrid.ItemsSource = null;
-            BooksGrid.ItemsSource = _cachedBooks;
+            LoadBooks();
         }
+
 
         protected override void OnClosed(EventArgs e)
         {
             _dbContext?.Dispose();
             base.OnClosed(e);
+        }
+
+        private void BooksGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var selectedBook = BooksGrid.SelectedItem as Book;
+            if (selectedBook == null) return;
+
+            var window = new EditBookWindow(_dbContext, selectedBook);
+            if (window.ShowDialog() == true)
+            {
+                LoadBooks(); // Обновим список книг после редактирования
+            }
         }
     }
 }

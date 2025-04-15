@@ -14,14 +14,14 @@
 
             <!-- Существующая кнопка -->
             <Button x:Name="LoadBooksButton" Content="Книги" Width="80" Margin="0,0,10,0" 
-            Click="ShowBooksButton_Click" ToolTip="Показать список книг"/>
+                    Click="ShowBooksButton_Click" ToolTip="Показать список книг"/>
 
             <!-- Новая кнопка -->
             <Button x:Name="AddBookButton" Content="Добавить книгу" Width="120" Margin="0,0,10,0"
-            Click="AddBookButton_Click" ToolTip="Добавить новую книгу"/>
+                    Click="AddBookButton_Click" ToolTip="Добавить новую книгу"/>
             <Button x:Name="DeleteBookButton" Content="Удалить книгу" Width="120" 
-            Click="DeleteBookButton_Click"
-            Height="40"/>
+                    Click="DeleteBookButton_Click"
+                    Height="40"/>
         </StackPanel>
 
         <!-- StatusBar (добавляем внизу) -->
@@ -35,13 +35,26 @@
             </StatusBarItem>
         </StatusBar>
 
-
         <!-- Основная область с DataGrid -->
         <Grid>
             <DataGrid x:Name="BooksGrid" Margin="10" AutoGenerateColumns="False">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Название" Binding="{Binding Title}" Width="*"/>
-                    <DataGridTextColumn Header="Автор" Binding="{Binding Author.LastName, TargetNullValue='Не указан'}" Width="120"/>
+
+                    <DataGridTextColumn Header="Автор" Width="150">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text">
+                                    <Setter.Value>
+                                        <MultiBinding StringFormat="{}{0} {1}">
+                                            <Binding Path="Author.FirstName" />
+                                            <Binding Path="Author.LastName" />
+                                        </MultiBinding>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>
