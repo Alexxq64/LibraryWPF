@@ -63,4 +63,5 @@ public partial class Book
     [ForeignKey("BookID")]
     [InverseProperty("Books")]
     public virtual ICollection<Genre> Genres { get; set; } = new List<Genre>();
+    public string Text { get; set; } // просто добавляем в модель
 }

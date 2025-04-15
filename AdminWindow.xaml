@@ -1,35 +1,47 @@
 ﻿<Window x:Class="LibraryWPF.AdminWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Панель администратора" Height="600" Width="900">
+        Title="Панель администратора" Height="600" Width="900"
+        WindowStartupLocation="CenterScreen">
     <Grid>
         <TabControl>
+            <!-- Вкладка "Книги" -->
             <TabItem Header="Книги">
-                <!-- Здесь таблица книг -->
-                <DataGrid x:Name="BooksGrid" AutoGenerateColumns="False" Margin="10">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Название" Binding="{Binding Title}" />
-                        <DataGridTextColumn Header="ISBN" Binding="{Binding ISBN}" />
-                        <DataGridTextColumn Header="Автор">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Text">
-                                        <Setter.Value>
-                                            <MultiBinding StringFormat="{}{0} {1}">
-                                                <Binding Path="Author.FirstName" />
-                                                <Binding Path="Author.LastName" />
-                                            </MultiBinding>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
+                <DockPanel Margin="10">
+                    <!-- Кнопки управления книгами -->
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,0">
+                        <Button Content="Добавить" Width="100" Margin="0,0,10,0" Click="AddBookButton_Click"/>
+                        <Button Content="Изменить" Width="100" Margin="0,0,10,0" Click="EditBookButton_Click"/>
+                        <Button Content="Удалить" Width="100" Margin="0,0,10,0" Click="DeleteBookButton_Click"/>
+                        <Button Content="Читать" Width="100" Margin="0,0,10,0" Click="ReadBookButton_Click"/>
+                    </StackPanel>
+
+                    <!-- Таблица книг -->
+                    <DataGrid x:Name="BooksGrid" AutoGenerateColumns="False" Margin="10">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Название" Binding="{Binding Title}" />
+                            <DataGridTextColumn Header="ISBN" Binding="{Binding ISBN}" />
+                            <DataGridTextColumn Header="Автор">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text">
+                                            <Setter.Value>
+                                                <MultiBinding StringFormat="{}{0} {1}">
+                                                    <Binding Path="Author.FirstName" />
+                                                    <Binding Path="Author.LastName" />
+                                                </MultiBinding>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
             </TabItem>
 
+            <!-- Вкладка "Пользователи" -->
             <TabItem Header="Пользователи">
-                <!-- Здесь таблица пользователей -->
                 <DataGrid x:Name="UsersGrid" AutoGenerateColumns="False" Margin="10">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Логин" Binding="{Binding Username}" />
