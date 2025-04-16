@@ -9,36 +9,29 @@ namespace LibraryWPF
         public ChooseDbWindow()
         {
             InitializeComponent();
-
-            // Отложенная инициализация после полной загрузки всех компонентов
-            this.ContentRendered += (s, e) =>
-            {
-                InitializeComponents();
-                UpdateControlsVisibility();
-            };
+            this.ContentRendered += (s, e) => InitializeWindow();
         }
 
-        private void InitializeComponents()
+        private void InitializeWindow()
         {
             try
             {
-                ExistingDbComboBox.Items.Clear();
-                ExistingDbComboBox.Items.Add("LibraryDB");
-                ExistingDbComboBox.Items.Add("ArchiveDB");
-                ExistingDbComboBox.Items.Add("TestDB");
+                ExistingDbComboBox.ItemsSource = new[] { "LibraryDB", "ArchiveDB", "TestDB" };
                 ExistingDbComboBox.SelectedIndex = 0;
+                UpdateControlsVisibility();
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Ошибка инициализации: {ex.Message}");
+                MessageBox.Show("Ошибка инициализации окна", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                CloseApplication();
             }
         }
 
         private void UpdateControlsVisibility()
         {
-            if (NewDbNameTextBox == null || ExistingDbComboBox == null ||
-                CreateNewDbRadioButton == null || UseExistingDbRadioButton == null)
-                return;
+            if (NewDbNameTextBox == null || ExistingDbComboBox == null) return;
 
             NewDbNameTextBox.Visibility = CreateNewDbRadioButton.IsChecked == true
                 ? Visibility.Visible
@@ -56,33 +49,41 @@ namespace LibraryWPF
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
-            if (CreateNewDbRadioButton.IsChecked == true)
+            try
             {
-                if (string.IsNullOrWhiteSpace(NewDbNameTextBox.Text))
+                if (CreateNewDbRadioButton.IsChecked == true &&
+                    string.IsNullOrWhiteSpace(NewDbNameTextBox.Text))
                 {
                     MessageBox.Show("Введите имя новой базы данных", "Ошибка",
                         MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                DatabaseSettings.Instance.IsCreateNewDb = true;
-                DatabaseSettings.Instance.SelectedDbName = NewDbNameTextBox.Text.Trim();
+                DatabaseSettings.Instance.IsCreateNewDb = CreateNewDbRadioButton.IsChecked == true;
+                DatabaseSettings.Instance.SelectedDbName = CreateNewDbRadioButton.IsChecked == true
+                    ? NewDbNameTextBox.Text.Trim()
+                    : ExistingDbComboBox.SelectedItem?.ToString();
+
+                DialogResult = true;
+                Close();
             }
-            else
+            catch (Exception ex)
             {
-                DatabaseSettings.Instance.IsCreateNewDb = false;
-                DatabaseSettings.Instance.SelectedDbName = ExistingDbComboBox.SelectedItem?.ToString() ?? "LibraryDB";
+                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                CloseApplication();
             }
-
-            DialogResult = true;
-            Close();
         }
-
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            DialogResult = false;
-            Close();
+            CloseApplication();
+        }
+
+        private void CloseApplication()
+        {
+            // Корректное завершение приложения
+            Application.Current.Shutdown();
         }
     }
 }

@@ -17,6 +17,7 @@ namespace LibraryWPF
 
             // Загружаем данные книг в DataGrid
             LoadBooks();
+            LoadUsers();
         }
 
         private void LoadBooks()
@@ -110,5 +111,84 @@ namespace LibraryWPF
             var bookTextWindow = new BookTextWindow(selectedBook.Text ?? "Текст книги отсутствует.");
             bookTextWindow.ShowDialog();
         }
+
+        private void LoadUsers()
+        {
+            using (var context = new LibraryDBContext("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;"))
+            {
+                var users = context.Users.ToList();
+                UsersGrid.ItemsSource = users;
+            }
+        }
+
+        private void AddUserButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Создаем окно для добавления нового пользователя с пустыми полями
+            var editUserWindow = new EditUserWindow();
+            if (editUserWindow.ShowDialog() == true) // Если пользователь нажал "Сохранить"
+            {
+                LoadUsers(); // Обновляем список пользователей в DataGrid
+            }
+        }
+
+
+        private void EditUserButton_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedUser = UsersGrid.SelectedItem as User;
+
+            if (selectedUser == null)
+            {
+                MessageBox.Show("Выберите пользователя для редактирования.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            var editWindow = new EditUserWindow(selectedUser);
+            if (editWindow.ShowDialog() == true)
+            {
+                using (var context = new LibraryDBContext("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;"))
+                {
+                    var userToUpdate = context.Users.Find(selectedUser.UserID);
+                    if (userToUpdate != null)
+                    {
+                        userToUpdate.Email = selectedUser.Email;
+                        userToUpdate.FirstName = selectedUser.FirstName;
+                        userToUpdate.LastName = selectedUser.LastName;
+                        userToUpdate.IsAdmin = selectedUser.IsAdmin;
+
+                        context.SaveChanges();
+                    }
+                }
+
+                LoadUsers();
+                MessageBox.Show("Пользователь обновлен.", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void DeleteUserButton_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedUser = UsersGrid.SelectedItem as User;
+
+            if (selectedUser == null)
+            {
+                MessageBox.Show("Выберите пользователя для удаления.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (MessageBox.Show($"Удалить пользователя \"{selectedUser.Username}\"?", "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                using (var context = new LibraryDBContext("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;"))
+                {
+                    var userToDelete = context.Users.Find(selectedUser.UserID);
+                    if (userToDelete != null)
+                    {
+                        context.Users.Remove(userToDelete);
+                        context.SaveChanges();
+                        LoadUsers();
+                        MessageBox.Show("Пользователь удалён.", "Инфо", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+            }
+        }
+
     }
 }
