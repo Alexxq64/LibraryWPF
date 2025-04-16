@@ -16,7 +16,7 @@
         <!-- Создать новую БД -->
         <RadioButton x:Name="CreateNewDbRadioButton" Grid.Row="0"
                      Content="Создать новую базу данных"
-                     GroupName="DbChoice" IsChecked="True"
+                     GroupName="DbChoice"
                      Checked="RadioButton_Checked"/>
 
         <!-- Поле для имени новой БД -->
@@ -27,7 +27,7 @@
         <!-- Использовать существующую БД -->
         <RadioButton x:Name="UseExistingDbRadioButton" Grid.Row="2"
                      Content="Использовать существующую базу данных"
-                     GroupName="DbChoice"
+                     GroupName="DbChoice"  IsChecked="True"
                      Checked="RadioButton_Checked"/>
 
         <!-- Выбор существующей БД -->

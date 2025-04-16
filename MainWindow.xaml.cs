@@ -73,26 +73,27 @@ namespace LibraryWPF
 
             try
             {
-                if (chooseDbWindow.IsCreateNewDb)
+                if (DatabaseSettings.Instance.IsCreateNewDb)
                 {
-                    CreateDatabase(chooseDbWindow.NewDbName);
+                    CreateDatabase();
                 }
                 else
                 {
-                    ConnectToExistingDatabase(chooseDbWindow.SelectedDbName);
+                    ConnectToExistingDatabase();
                 }
+
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"Ошибка: {ex.Message}\nИспользуется {DefaultDbName}");
-                ConnectToExistingDatabase(DefaultDbName);
+                ConnectToExistingDatabase();
             }
         }
 
-        private void ConnectToExistingDatabase(string dbName)
+        private void ConnectToExistingDatabase()
         {
-            _currentDbName = dbName ?? DefaultDbName;
-            _dbContext = CreateDbContext(_currentDbName);
+            _currentDbName = DatabaseSettings.Instance.SelectedDbName;
+            _dbContext = CreateDbContext();
 
             if (!_dbContext.Database.CanConnect())
                 throw new Exception($"Не удалось подключиться к базе {_currentDbName}");
@@ -100,11 +101,13 @@ namespace LibraryWPF
             UpdateStatus($"Подключено к {_currentDbName}", "БД: подключено");
         }
 
-        private void CreateDatabase(string dbName)
+
+        private void CreateDatabase()
         {
             try
             {
-                _dbContext = CreateDbContext(dbName);
+                var dbName = DatabaseSettings.Instance.SelectedDbName;
+                _dbContext = CreateDbContext();
                 _dbContext.Database.EnsureCreated();
                 AddInitialData();
                 _currentDbName = dbName;
@@ -116,12 +119,14 @@ namespace LibraryWPF
             }
         }
 
-        private LibraryDBContext CreateDbContext(string dbName)
+        private LibraryDBContext CreateDbContext()
         {
+            var dbName = DatabaseSettings.Instance.SelectedDbName;
             var optionsBuilder = new DbContextOptionsBuilder<LibraryDBContext>();
             optionsBuilder.UseSqlServer(GetConnectionString(dbName));
             return new LibraryDBContext(optionsBuilder.Options);
         }
+
 
         private string GetConnectionString(string dbName)
         {

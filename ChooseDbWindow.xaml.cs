@@ -1,17 +1,11 @@
 ﻿using System;
-using System.Windows;
-using System.Windows.Controls;
-using System.ComponentModel;
 using System.Diagnostics;
+using System.Windows;
 
 namespace LibraryWPF
 {
     public partial class ChooseDbWindow : Window
     {
-        public string SelectedDbName { get; private set; } = "LibraryDB";
-        public bool IsCreateNewDb { get; private set; }
-        public string NewDbName { get; private set; }
-
         public ChooseDbWindow()
         {
             InitializeComponent();
@@ -42,12 +36,9 @@ namespace LibraryWPF
 
         private void UpdateControlsVisibility()
         {
-            // Безопасное обновление видимости
             if (NewDbNameTextBox == null || ExistingDbComboBox == null ||
                 CreateNewDbRadioButton == null || UseExistingDbRadioButton == null)
-            {
                 return;
-            }
 
             NewDbNameTextBox.Visibility = CreateNewDbRadioButton.IsChecked == true
                 ? Visibility.Visible
@@ -74,19 +65,19 @@ namespace LibraryWPF
                     return;
                 }
 
-                IsCreateNewDb = true;
-                NewDbName = NewDbNameTextBox.Text.Trim();
-                SelectedDbName = NewDbName;
+                DatabaseSettings.Instance.IsCreateNewDb = true;
+                DatabaseSettings.Instance.SelectedDbName = NewDbNameTextBox.Text.Trim();
             }
             else
             {
-                IsCreateNewDb = false;
-                SelectedDbName = ExistingDbComboBox.SelectedItem?.ToString() ?? "LibraryDB";
+                DatabaseSettings.Instance.IsCreateNewDb = false;
+                DatabaseSettings.Instance.SelectedDbName = ExistingDbComboBox.SelectedItem?.ToString() ?? "LibraryDB";
             }
 
             DialogResult = true;
             Close();
         }
+
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {

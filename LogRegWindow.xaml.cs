@@ -17,6 +17,10 @@ namespace LibraryWPF
         {
             InitializeComponent();
             _dbContext = dbContext;
+
+            // Заполняем логин и пароль из настроек
+            LoginUsernameBox.Text = Properties.Settings.Default.LastUsername;
+            LoginPasswordBox.Password = ""; // Пароль не подставляем в чистом виде
         }
 
         private void LoginButton_Click(object sender, RoutedEventArgs e)
@@ -34,6 +38,14 @@ namespace LibraryWPF
 
             user.LastLoginDate = DateTime.Now;
             _dbContext.SaveChanges();
+
+
+            // Сохраняем имя пользователя и хэш
+            Properties.Settings.Default.LastUsername = username;
+            Properties.Settings.Default.LastPasswordHash = user.PasswordHash;
+            Properties.Settings.Default.Save();
+
+
 
             LoggedInUser = user;
             DialogResult = true;

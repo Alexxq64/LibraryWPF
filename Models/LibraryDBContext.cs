@@ -13,6 +13,15 @@ public partial class LibraryDBContext : DbContext
     {
     }
 
+    // 👇 Новый конструктор с connection string
+    public LibraryDBContext(string connectionString)
+        : base(new DbContextOptionsBuilder<LibraryDBContext>()
+              .UseSqlServer(connectionString)
+              .Options)
+    {
+    }
+
+
     public virtual DbSet<Author> Authors { get; set; }
 
     public virtual DbSet<Book> Books { get; set; }
