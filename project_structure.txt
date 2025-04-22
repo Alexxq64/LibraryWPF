@@ -1,0 +1,42 @@
+﻿|-- AddAuthorWindow.xaml
+|-- AddAuthorWindow.xaml.cs
+|-- AdminWindow.xaml
+|-- AdminWindow.xaml.cs
+|-- App.config
+|-- App.xaml
+|-- App.xaml.cs
+|-- AssemblyInfo.cs
+|-- BookTextWindow.xaml
+|-- BookTextWindow.xaml.cs
+|-- ChooseDbWindow.xaml
+|-- ChooseDbWindow.xaml.cs
+|-- EditBookWindow.xaml
+|-- EditBookWindow.xaml.cs
+|-- EditUserWindow.xaml
+|-- EditUserWindow.xaml.cs
+|-- efpt.config.json
+|-- Icons
+|-- LibraryWPF.csproj
+|-- LibraryWPF.sln
+|-- LogRegWindow.xaml
+|-- LogRegWindow.xaml.cs
+|-- MainWindow.xaml
+|-- MainWindow.xaml.cs
+|-- Models
+|   |-- Author.cs
+|   |-- Book.cs
+|   |-- BookSeries.cs
+|   |-- Genre.cs
+|   |-- LibraryDBContext.cs
+|   |-- ReadingHistory.cs
+|   |-- Review.cs
+|   |-- User.cs
+|   -- UserFavorite.cs
+|-- NewDbNameWindow.xaml
+|-- NewDbNameWindow.xaml.cs
+|-- Properties
+|   |-- Settings.Designer.cs
+|   -- Settings.settings
+|-- Services
+|   -- DatabaseSettings.cs
+-- Views

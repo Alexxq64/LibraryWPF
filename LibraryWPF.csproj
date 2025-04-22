@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <Folder Include="Icons\" />
+    <Folder Include="Views\" />
   </ItemGroup>
 
   <ItemGroup>
