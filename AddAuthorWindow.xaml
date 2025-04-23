@@ -19,7 +19,7 @@
             <TextBox x:Name="LastNameTextBox" Width="360" Height="30"/>
         </StackPanel>
 
-        <Button Grid.Row="2" Content="Добавить" Width="360" Height="40" VerticalAlignment="Bottom"
+        <Button Grid.Row="2" Content="Добавить" Width="80"  VerticalAlignment="Bottom"
                 Click="AddAuthorButton_Click"/>
     </Grid>
 </Window>

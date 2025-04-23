@@ -4,10 +4,20 @@
         Title="Библиотека" Height="600" Width="900">
 
     <Grid>
-        <TabControl Name="MainTabControl">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TabControl Name="MainTabControl" Grid.Row="0">
             <!-- Вкладка: Все книги -->
             <TabItem Header="Все книги">
                 <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
                     <DataGrid Name="BooksGrid" AutoGenerateColumns="False" Margin="10" IsReadOnly="True" SelectionMode="Single">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Название" Binding="{Binding Title}" Width="*" />
@@ -15,14 +25,21 @@
                             <DataGridTextColumn Header="ISBN" Binding="{Binding ISBN}" Width="150" />
                         </DataGrid.Columns>
                     </DataGrid>
-                    <Button Content="Добавить в мои книги" Click="AddToMyBooks_Click"
-                            HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10" Width="180"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10" Grid.Row="1">
+                        <Button Content="Добавить в мои книги" Click="AddToMyBooks_Click" Width="150" Margin="5"/>
+                    </StackPanel>
                 </Grid>
             </TabItem>
 
             <!-- Вкладка: Мои книги -->
             <TabItem Header="Мои книги">
                 <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
                     <DataGrid Name="MyBooksGrid" AutoGenerateColumns="False" Margin="10" IsReadOnly="True" SelectionMode="Single"
                               MouseDoubleClick="MyBooksGrid_MouseDoubleClick">
                         <DataGrid.Columns>
@@ -32,18 +49,19 @@
                             <DataGridTextColumn Header="Последнее чтение" Binding="{Binding LastReadDate}" Width="150"/>
                         </DataGrid.Columns>
                     </DataGrid>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10">
-                        <Button Content="Читать" Click="ReadMyBook_Click" Width="100" Margin="5"/>
-                        <Button Content="Удалить" Click="RemoveFromMyBooks_Click" Width="100" Margin="5"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10" Grid.Row="1">
+                        <Button Content="Читать" Click="ReadMyBook_Click" Width="80" Margin="5"/>
+                        <Button Content="Удалить" Click="RemoveFromMyBooks_Click" Width="80" Margin="5"/>
                     </StackPanel>
                 </Grid>
             </TabItem>
         </TabControl>
 
         <!-- Статусы -->
-        <DockPanel VerticalAlignment="Bottom">
-            <TextBlock Name="StatusText" Margin="10,0" />
-            <TextBlock Name="DbStatusText" Margin="10,0" HorizontalAlignment="Right" />
+        <DockPanel Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+            <TextBlock Name="StatusText" Margin="10,5" VerticalAlignment="Center"/>
+            <TextBlock Name="DbStatusText" Margin="10,5" HorizontalAlignment="Right" VerticalAlignment="Center"/>
         </DockPanel>
     </Grid>
 </Window>

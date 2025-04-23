@@ -38,5 +38,6 @@
 |   |-- Settings.Designer.cs
 |   -- Settings.settings
 |-- Services
-|   -- DatabaseSettings.cs
+|   |-- DatabaseSettings.cs
+|   -- DBConnectionService.cs
 -- Views

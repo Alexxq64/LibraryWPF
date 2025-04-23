@@ -40,8 +40,8 @@
 
             <!-- Кнопки -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="AddBookButton" Content="Добавить" Width="100" Margin="5" Click="AddBookButton_Click"/>
-                <Button x:Name="SaveBookButton" Content="Сохранить" Width="100" Margin="5" Click="SaveBookButton_Click"/>
+                <Button x:Name="AddBookButton" Content="Добавить" Width="80" Margin="5" Click="AddBookButton_Click"/>
+                <Button x:Name="SaveBookButton" Content="Сохранить" Width="80" Margin="5" Click="SaveBookButton_Click"/>
             </StackPanel>
         </StackPanel>
     </Grid>

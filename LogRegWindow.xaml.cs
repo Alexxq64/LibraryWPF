@@ -23,6 +23,17 @@ namespace LibraryWPF
             LoginPasswordBox.Password = ""; // Пароль не подставляем в чистом виде
         }
 
+        public LogRegWindow()
+        {
+            InitializeComponent();
+            _dbContext = new LibraryDBContext();  // Используем конструктор без параметров
+
+            // Заполняем логин и пароль из настроек
+            LoginUsernameBox.Text = Properties.Settings.Default.LastUsername;
+            LoginPasswordBox.Password = ""; // Пароль не подставляем в чистом виде
+        }
+
+
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
             string username = LoginUsernameBox.Text.Trim();

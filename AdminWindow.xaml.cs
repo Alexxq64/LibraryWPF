@@ -20,6 +20,17 @@ namespace LibraryWPF
             LoadUsers();
         }
 
+        public AdminWindow()
+        {
+            InitializeComponent();
+            _dbContext = new LibraryDBContext(); // Здесь инициализируем dbContext без параметра
+
+            // Загружаем данные книг в DataGrid
+            LoadBooks();
+            LoadUsers();
+        }
+
+
         private void LoadBooks()
         {
             using (var context = new LibraryDBContext("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;"))

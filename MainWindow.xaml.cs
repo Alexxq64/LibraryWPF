@@ -34,7 +34,8 @@ namespace LibraryWPF
         {
             ShowDatabaseSelectionWindow();
 
-            var logRegWindow = new LogRegWindow(_dbContext);
+            //var logRegWindow = new LogRegWindow(_dbContext);
+            var logRegWindow = new LogRegWindow();
             if (logRegWindow.ShowDialog() != true)
             {
                 Environment.Exit(0);
@@ -45,7 +46,8 @@ namespace LibraryWPF
 
             if (_currentUser.IsAdmin)
             {
-                var adminWindow = new AdminWindow(_dbContext);
+                var adminWindow = new AdminWindow(); // Используется конструктор без параметров
+                //var adminWindow = new AdminWindow(_dbContext);
                 adminWindow.Show();
                 Close();
                 return;
@@ -93,7 +95,8 @@ namespace LibraryWPF
         private void ConnectToExistingDatabase()
         {
             _currentDbName = DatabaseSettings.Instance.SelectedDbName;
-            _dbContext = CreateDbContext();
+            //_dbContext = CreateDbContext();
+            _dbContext = new LibraryDBContext();
 
             if (!_dbContext.Database.CanConnect())
                 throw new Exception($"Не удалось подключиться к базе {_currentDbName}");
@@ -107,7 +110,8 @@ namespace LibraryWPF
             try
             {
                 var dbName = DatabaseSettings.Instance.SelectedDbName;
-                _dbContext = CreateDbContext();
+                //_dbContext = CreateDbContext();
+                _dbContext = new LibraryDBContext();
                 _dbContext.Database.EnsureCreated();
                 AddInitialData();
                 _currentDbName = dbName;

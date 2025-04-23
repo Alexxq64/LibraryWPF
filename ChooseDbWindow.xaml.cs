@@ -64,6 +64,11 @@ namespace LibraryWPF
                     ? NewDbNameTextBox.Text.Trim()
                     : ExistingDbComboBox.SelectedItem?.ToString();
 
+                var dbName = DatabaseSettings.Instance.SelectedDbName;
+                string connectionString = $"Server=localhost;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True;";
+                LibraryWPF.Services.DbConnectionService.ConnectionString = connectionString;
+
+
                 DialogResult = true;
                 Close();
             }

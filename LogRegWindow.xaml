@@ -13,7 +13,7 @@
                 <TextBlock Text="Пароль" />
                 <PasswordBox x:Name="LoginPasswordBox" Margin="0,5,0,10" />
 
-                <Button Content="Войти" Width="100" Click="LoginButton_Click" />
+                <Button Content="Войти" Width="80" Click="LoginButton_Click" />
             </StackPanel>
         </TabItem>
 

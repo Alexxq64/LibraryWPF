@@ -21,6 +21,14 @@ public partial class LibraryDBContext : DbContext
     {
     }
 
+    public LibraryDBContext()
+        : base(new DbContextOptionsBuilder<LibraryDBContext>()
+              .UseSqlServer(LibraryWPF.Services.DbConnectionService.ConnectionString)
+              .Options)
+    {
+    }
+
+
 
     public virtual DbSet<Author> Authors { get; set; }
 
