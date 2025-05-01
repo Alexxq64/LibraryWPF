@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.EntityFrameworkCore;
 using LibraryWPF.Models;
+using LibraryWPF.Services;
 
 namespace LibraryWPF
 {
@@ -75,7 +76,8 @@ namespace LibraryWPF
 
             try
             {
-                if (DatabaseSettings.Instance.IsCreateNewDb)
+                //if (DatabaseSettings.Instance.IsCreateNewDb)
+                if (DBTools.IsCreateNewDb)
                 {
                     CreateDatabase();
                 }

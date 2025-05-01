@@ -1,6 +1,9 @@
-﻿using System;
+﻿using LibraryWPF.Services;
+using Microsoft.Data.SqlClient;
+using System;
 using System.Diagnostics;
 using System.Windows;
+using System.Xml.Linq;
 
 namespace LibraryWPF
 {
@@ -16,16 +19,29 @@ namespace LibraryWPF
         {
             try
             {
-                ExistingDbComboBox.ItemsSource = new[] { "LibraryDB", "ArchiveDB", "TestDB" };
+                // 1. Инициализация списка
+                ExistingDbComboBox.ItemsSource = new[] { "LibraryDB", "ArchiveDB (недоступно)", "TestDB (недоступно)" };
                 ExistingDbComboBox.SelectedIndex = 0;
                 UpdateControlsVisibility();
+
+                // 2. Проверка подключения только к LibraryDB
+                string dbName = "LibraryDB"; // Жестко проверяем только основную БД
+                if (!DBTools.TestConnection(dbName))
+                {
+                    MessageBox.Show("Не удалось подключиться к основной базе LibraryDB",
+                                  "Ошибка подключения",
+                                  MessageBoxButton.OK,
+                                  MessageBoxImage.Error);
+                    Application.Current.Shutdown();
+                    return;
+                }
+
+                // 3. Сохраняем имя БД
+                DBTools.DBName = dbName;
             }
-            catch (Exception ex)
+            catch
             {
-                Debug.WriteLine($"Ошибка инициализации: {ex.Message}");
-                MessageBox.Show("Ошибка инициализации окна", "Ошибка",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-                CloseApplication();
+                Application.Current.Shutdown();
             }
         }
 
@@ -47,37 +63,78 @@ namespace LibraryWPF
             UpdateControlsVisibility();
         }
 
+        //private void OkButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    try
+        //    {
+        //        if (CreateNewDbRadioButton.IsChecked == true &&
+        //            string.IsNullOrWhiteSpace(NewDbNameTextBox.Text))
+        //        {
+        //            MessageBox.Show("Введите имя новой базы данных", "Ошибка",
+        //                MessageBoxButton.OK, MessageBoxImage.Warning);
+        //            return;
+        //        }
+
+        //        DatabaseSettings.Instance.IsCreateNewDb = CreateNewDbRadioButton.IsChecked == true;
+        //        DatabaseSettings.Instance.SelectedDbName = CreateNewDbRadioButton.IsChecked == true
+        //            ? NewDbNameTextBox.Text.Trim()
+        //            : ExistingDbComboBox.SelectedItem?.ToString();
+
+        //        var dbName = DatabaseSettings.Instance.SelectedDbName;
+        //        string connectionString = $"Server=localhost;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True;";
+        //        LibraryWPF.Services.DbConnectionService.ConnectionString = connectionString;
+
+
+        //        DialogResult = true;
+        //        Close();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка",
+        //            MessageBoxButton.OK, MessageBoxImage.Error);
+        //        CloseApplication();
+        //    }
+        //}
+
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
-            try
+            if (CreateNewDbRadioButton.IsChecked == true)
             {
-                if (CreateNewDbRadioButton.IsChecked == true &&
-                    string.IsNullOrWhiteSpace(NewDbNameTextBox.Text))
-                {
-                    MessageBox.Show("Введите имя новой базы данных", "Ошибка",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
+                // Получаем валидное имя (метод сам обрабатывает все повторы)
+                DBTools.DBName = ValidateDatabaseName();
                 DatabaseSettings.Instance.IsCreateNewDb = CreateNewDbRadioButton.IsChecked == true;
-                DatabaseSettings.Instance.SelectedDbName = CreateNewDbRadioButton.IsChecked == true
-                    ? NewDbNameTextBox.Text.Trim()
-                    : ExistingDbComboBox.SelectedItem?.ToString();
-
-                var dbName = DatabaseSettings.Instance.SelectedDbName;
-                string connectionString = $"Server=localhost;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True;";
-                LibraryWPF.Services.DbConnectionService.ConnectionString = connectionString;
-
-
-                DialogResult = true;
-                Close();
+                DBTools.IsCreateNewDb = CreateNewDbRadioButton.IsChecked == true;
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-                CloseApplication();
-            }
+
+            DatabaseSettings.Instance.SelectedDbName = DBTools.DBName;
+            LibraryWPF.Services.DbConnectionService.ConnectionString = DBTools.ConnectionString;
+            DialogResult = true;
+            Close();
+        }
+
+        private string ValidateDatabaseName()
+        {
+            //while (true)
+            //{
+            string name = NewDbNameTextBox.Text.Trim();
+
+            //    if (string.IsNullOrWhiteSpace(name))
+            //    {
+            //        MessageBox.Show("Имя БД не может быть пустым", "Ошибка",
+            //                      MessageBoxButton.OK, MessageBoxImage.Error);
+            //        continue;
+            //    }
+
+            //    if (name.Any(c => !char.IsLetterOrDigit(c) && c != '_'))
+            //    {
+            //        MessageBox.Show("Имя БД может содержать только буквы, цифры и _", "Ошибка",
+            //                      MessageBoxButton.OK, MessageBoxImage.Error);
+            //        continue;
+            //    }
+
+            //MessageBox.Show(name);
+            return "LibraryDB"; // Возвращаем только валидное имя
+            //}
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)

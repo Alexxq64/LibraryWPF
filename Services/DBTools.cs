@@ -6,6 +6,7 @@ namespace LibraryWPF.Services
     public static class DBTools
     {
         private static string _dbName = "LibraryDB";
+        private static bool _isCreateNewDb = false;
 
         public static string DBName
         {
@@ -13,6 +14,12 @@ namespace LibraryWPF.Services
             set => _dbName = string.IsNullOrWhiteSpace(value)
                 ? throw new ArgumentException("Имя БД не может быть пустым")
                 : value;
+        }
+
+        public static bool IsCreateNewDb
+        {
+            get => _isCreateNewDb;
+            set => _isCreateNewDb = value;
         }
 
         public static string ConnectionString =>
