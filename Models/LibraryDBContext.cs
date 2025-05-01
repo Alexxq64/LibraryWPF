@@ -2,33 +2,52 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using LibraryWPF.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibraryWPF.Models;
 
 public partial class LibraryDBContext : DbContext
 {
-    public LibraryDBContext(DbContextOptions<LibraryDBContext> options)
-        : base(options)
-    {
-    }
+    //public LibraryDBContext(DbContextOptions<LibraryDBContext> options)
+    //    : base(options)
+    //{
+    //}
 
-    // 👇 Новый конструктор с connection string
-    public LibraryDBContext(string connectionString)
-        : base(new DbContextOptionsBuilder<LibraryDBContext>()
-              .UseSqlServer(connectionString)
-              .Options)
-    {
-    }
+    //// 👇 Новый конструктор с connection string
+    //public LibraryDBContext(string connectionString)
+    //    : base(new DbContextOptionsBuilder<LibraryDBContext>()
+    //          .UseSqlServer(connectionString)
+    //          .Options)
+    //{
+    //}
 
-    public LibraryDBContext()
-        : base(new DbContextOptionsBuilder<LibraryDBContext>()
-              .UseSqlServer(LibraryWPF.Services.DbConnectionService.ConnectionString)
-              .Options)
-    {
-    }
+    //public LibraryDBContext()
+    //    : base(new DbContextOptionsBuilder<LibraryDBContext>()
+    //          .UseSqlServer(LibraryWPF.Services.DbConnectionService.ConnectionString)
+    //          .Options)
+    //{
+    //}
 
 
+        // 1. Основной конструктор для DI
+        public LibraryDBContext(DbContextOptions<LibraryDBContext> options)
+            : base(options) { }
+
+        // 2. Конструктор для ручного создания
+        public LibraryDBContext(string connectionString)
+            : base(CreateOptions(connectionString)) { }
+
+        // 3. Конструктор по умолчанию (с DBTools)
+        public LibraryDBContext()
+            : this(DBTools.ConnectionString) { }
+
+        private static DbContextOptions<LibraryDBContext> CreateOptions(string connectionString)
+        {
+            return new DbContextOptionsBuilder<LibraryDBContext>()
+                .UseSqlServer(connectionString)
+                .Options;
+        }
 
     public virtual DbSet<Author> Authors { get; set; }
 

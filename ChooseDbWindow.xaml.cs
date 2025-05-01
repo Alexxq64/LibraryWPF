@@ -102,12 +102,12 @@ namespace LibraryWPF
             {
                 // Получаем валидное имя (метод сам обрабатывает все повторы)
                 DBTools.DBName = ValidateDatabaseName();
-                DatabaseSettings.Instance.IsCreateNewDb = CreateNewDbRadioButton.IsChecked == true;
+                //DatabaseSettings.Instance.IsCreateNewDb = CreateNewDbRadioButton.IsChecked == true;
                 DBTools.IsCreateNewDb = CreateNewDbRadioButton.IsChecked == true;
             }
 
-            DatabaseSettings.Instance.SelectedDbName = DBTools.DBName;
-            LibraryWPF.Services.DbConnectionService.ConnectionString = DBTools.ConnectionString;
+            //DatabaseSettings.Instance.SelectedDbName = DBTools.DBName;
+            //LibraryWPF.Services.DbConnectionService.ConnectionString = DBTools.ConnectionString;
             DialogResult = true;
             Close();
         }

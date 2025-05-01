@@ -96,14 +96,14 @@ namespace LibraryWPF
 
         private void ConnectToExistingDatabase()
         {
-            _currentDbName = DatabaseSettings.Instance.SelectedDbName;
+            //_currentDbName = DatabaseSettings.Instance.SelectedDbName;
             //_dbContext = CreateDbContext();
             _dbContext = new LibraryDBContext();
 
             if (!_dbContext.Database.CanConnect())
-                throw new Exception($"Не удалось подключиться к базе {_currentDbName}");
+                throw new Exception($"Не удалось подключиться к базе {DBTools.DBName}");
 
-            UpdateStatus($"Подключено к {_currentDbName}", "БД: подключено");
+            UpdateStatus($"Подключено к {DBTools.DBName}", "БД: подключено");
         }
 
 
@@ -111,13 +111,13 @@ namespace LibraryWPF
         {
             try
             {
-                var dbName = DatabaseSettings.Instance.SelectedDbName;
+                //var dbName = DatabaseSettings.Instance.SelectedDbName;
                 //_dbContext = CreateDbContext();
                 _dbContext = new LibraryDBContext();
                 _dbContext.Database.EnsureCreated();
                 AddInitialData();
-                _currentDbName = dbName;
-                UpdateStatus($"База {dbName} создана", "БД: создана");
+                //_currentDbName = DBTools.DBName;
+                UpdateStatus($"База {DBTools.DBName} создана", "БД: создана");
             }
             catch (Exception ex)
             {
@@ -125,19 +125,19 @@ namespace LibraryWPF
             }
         }
 
-        private LibraryDBContext CreateDbContext()
-        {
-            var dbName = DatabaseSettings.Instance.SelectedDbName;
-            var optionsBuilder = new DbContextOptionsBuilder<LibraryDBContext>();
-            optionsBuilder.UseSqlServer(GetConnectionString(dbName));
-            return new LibraryDBContext(optionsBuilder.Options);
-        }
+        //private LibraryDBContext CreateDbContext()
+        //{
+        //    var dbName = DatabaseSettings.Instance.SelectedDbName;
+        //    var optionsBuilder = new DbContextOptionsBuilder<LibraryDBContext>();
+        //    optionsBuilder.UseSqlServer(GetConnectionString(dbName));
+        //    return new LibraryDBContext(optionsBuilder.Options);
+        //}
 
 
-        private string GetConnectionString(string dbName)
-        {
-            return $"Server=.;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True;";
-        }
+        //private string GetConnectionString(string dbName)
+        //{
+        //    return $"Server=.;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True;";
+        //}
 
         private void LoadBooks()
         {
