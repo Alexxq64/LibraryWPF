@@ -51,7 +51,8 @@ namespace LibraryWPF
         {
             try
             {
-                using (var context = new LibraryDBContext(GetConnectionString(DatabaseName)))
+                //using (var context = new LibraryDBContext(GetConnectionString(DatabaseName)))
+                using (var context = new LibraryDBContext())
                 {
                     return context.Database.CanConnect();
                 }
@@ -73,7 +74,8 @@ namespace LibraryWPF
 
             try
             {
-                using (var context = new LibraryDBContext(GetConnectionString(DatabaseName)))
+                //using (var context = new LibraryDBContext(GetConnectionString(DatabaseName)))
+                using (var context = new LibraryDBContext())
                 {
                     var authors = context.Authors
                         .Select(a => new { a.AuthorID, FullName = $"{a.FirstName} {a.LastName}" })
@@ -102,7 +104,8 @@ namespace LibraryWPF
 
             try
             {
-                using (var context = new LibraryDBContext(GetConnectionString(DatabaseName)))
+                //using (var context = new LibraryDBContext(GetConnectionString(DatabaseName)))
+                using (var context = new LibraryDBContext())
                 {
                     context.Books.Add(new Book
                     {
@@ -136,7 +139,8 @@ namespace LibraryWPF
 
             try
             {
-                using (var context = new LibraryDBContext(GetConnectionString(DatabaseName)))
+                //using (var context = new LibraryDBContext(GetConnectionString(DatabaseName)))
+                using (var context = new LibraryDBContext())
                 {
                     var bookToUpdate = context.Books.Find(_book.BookID);
                     if (bookToUpdate == null) return;

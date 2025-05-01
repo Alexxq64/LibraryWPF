@@ -43,5 +43,9 @@ namespace LibraryWPF.Services
                 return false;
             }
         }
+        public static bool TestConnection()
+        {
+            return TestConnection(_dbName);
+        }
     }
 }
