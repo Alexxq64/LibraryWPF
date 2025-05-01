@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Windows;
 using LibraryWPF.Models;
+using LibraryWPF.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibraryWPF
@@ -47,27 +48,27 @@ namespace LibraryWPF
             return $"Server=.;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True;";
         }
 
-        private bool CheckDatabaseConnection()
-        {
-            try
-            {
-                //using (var context = new LibraryDBContext(GetConnectionString(DatabaseName)))
-                using (var context = new LibraryDBContext())
-                {
-                    return context.Database.CanConnect();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка подключения: {ex.Message}", "Ошибка",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-                return false;
-            }
-        }
+        //private bool CheckDatabaseConnection()
+        //{
+        //    try
+        //    {
+        //        //using (var context = new LibraryDBContext(GetConnectionString(DatabaseName)))
+        //        using (var context = new LibraryDBContext())
+        //        {
+        //            return context.Database.CanConnect();
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show($"Ошибка подключения: {ex.Message}", "Ошибка",
+        //            MessageBoxButton.OK, MessageBoxImage.Error);
+        //        return false;
+        //    }
+        //}
 
         private void LoadAuthors()
         {
-            if (!CheckDatabaseConnection())
+            if (!DBTools.TestConnection())
             {
                 return;
             }
@@ -100,7 +101,7 @@ namespace LibraryWPF
 
         private void AddBookButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!ValidateInputs() || !CheckDatabaseConnection()) return;
+            if (!ValidateInputs() || !DBTools.TestConnection()) return;
 
             try
             {
@@ -135,7 +136,7 @@ namespace LibraryWPF
 
         private void SaveBookButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!ValidateInputs() || !CheckDatabaseConnection()) return;
+            if (!ValidateInputs() || !DBTools.TestConnection()) return;
 
             try
             {

@@ -33,7 +33,8 @@ namespace LibraryWPF
 
         private void LoadBooks()
         {
-            using (var context = new LibraryDBContext("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;"))
+            //using (var context = new LibraryDBContext("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;"))
+            using (var context = new LibraryDBContext())
             {
                 var books = context.Books.Include(b => b.Author).ToList();
                 BooksGrid.ItemsSource = books;
@@ -87,7 +88,8 @@ namespace LibraryWPF
             {
                 try
                 {
-                    using (var context = new LibraryDBContext("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;"))
+                    //using (var context = new LibraryDBContext("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;"))
+                    using (var context = new LibraryDBContext())
                     {
                         // Перезапрашиваем книгу из текущего контекста по ID
                         var bookToDelete = context.Books.Find(selectedBook.BookID);
@@ -125,7 +127,8 @@ namespace LibraryWPF
 
         private void LoadUsers()
         {
-            using (var context = new LibraryDBContext("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;"))
+            //using (var context = new LibraryDBContext("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;"))
+            using (var context = new LibraryDBContext())
             {
                 var users = context.Users.ToList();
                 UsersGrid.ItemsSource = users;
@@ -156,7 +159,8 @@ namespace LibraryWPF
             var editWindow = new EditUserWindow(selectedUser);
             if (editWindow.ShowDialog() == true)
             {
-                using (var context = new LibraryDBContext("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;"))
+                //using (var context = new LibraryDBContext("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;"))
+                using (var context = new LibraryDBContext())
                 {
                     var userToUpdate = context.Users.Find(selectedUser.UserID);
                     if (userToUpdate != null)
@@ -187,7 +191,8 @@ namespace LibraryWPF
 
             if (MessageBox.Show($"Удалить пользователя \"{selectedUser.Username}\"?", "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
-                using (var context = new LibraryDBContext("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;"))
+                using (var context = new LibraryDBContext())
+                //using (var context = new LibraryDBContext("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;"))
                 {
                     var userToDelete = context.Users.Find(selectedUser.UserID);
                     if (userToDelete != null)
