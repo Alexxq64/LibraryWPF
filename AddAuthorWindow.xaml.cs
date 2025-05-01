@@ -17,8 +17,7 @@ namespace LibraryWPF
         public AddAuthorWindow()
         {
             InitializeComponent();
-            _dbContext = new LibraryDBContext(); // Инициализация dbContext без параметров
-        }
+            _dbContext = new LibraryDBContext();        }
 
 
         private void AddAuthorButton_Click(object sender, RoutedEventArgs e)

@@ -9,26 +9,6 @@ namespace LibraryWPF.Models;
 
 public partial class LibraryDBContext : DbContext
 {
-    //public LibraryDBContext(DbContextOptions<LibraryDBContext> options)
-    //    : base(options)
-    //{
-    //}
-
-    //// 👇 Новый конструктор с connection string
-    //public LibraryDBContext(string connectionString)
-    //    : base(new DbContextOptionsBuilder<LibraryDBContext>()
-    //          .UseSqlServer(connectionString)
-    //          .Options)
-    //{
-    //}
-
-    //public LibraryDBContext()
-    //    : base(new DbContextOptionsBuilder<LibraryDBContext>()
-    //          .UseSqlServer(LibraryWPF.Services.DbConnectionService.ConnectionString)
-    //          .Options)
-    //{
-    //}
-
 
         // 1. Основной конструктор для DI
         public LibraryDBContext(DbContextOptions<LibraryDBContext> options)

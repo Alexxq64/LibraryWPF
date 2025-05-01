@@ -23,7 +23,7 @@ namespace LibraryWPF
         public AdminWindow()
         {
             InitializeComponent();
-            _dbContext = new LibraryDBContext(); // Здесь инициализируем dbContext без параметра
+            _dbContext = new LibraryDBContext();
 
             // Загружаем данные книг в DataGrid
             LoadBooks();
@@ -41,10 +41,9 @@ namespace LibraryWPF
             }
         }
 
-        // Обработчик для кнопки "Добавить книгу"
         private void AddBookButton_Click(object sender, RoutedEventArgs e)
         {
-            var addWindow = new EditBookWindow(); // Используем конструктор для добавления
+            var addWindow = new EditBookWindow();
             var result = addWindow.ShowDialog();
             if (result == true)
             {
@@ -52,7 +51,6 @@ namespace LibraryWPF
             }
         }
 
-        // Обработчик для кнопки "Редактировать"
         private void EditBookButton_Click(object sender, RoutedEventArgs e)
         {
             var selectedBook = BooksGrid.SelectedItem as Book;
@@ -63,7 +61,7 @@ namespace LibraryWPF
                 return;
             }
 
-            var editWindow = new EditBookWindow(selectedBook); // Конструктор для редактирования
+            var editWindow = new EditBookWindow(selectedBook); 
             var result = editWindow.ShowDialog();
             if (result == true)
             {
@@ -110,7 +108,6 @@ namespace LibraryWPF
             }
         }
 
-        // Обработчик для кнопки "Читать"
         private void ReadBookButton_Click(object sender, RoutedEventArgs e)
         {
             var selectedBook = BooksGrid.SelectedItem as Book;

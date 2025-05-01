@@ -54,8 +54,8 @@ namespace LibraryWPF
                             return;
                         }
 
-                        // Обновляем все поля, включая Username
-                        userToUpdate.Username = UsernameBox.Text.Trim();  // Добавлено обновление Username
+                        // Обновляем все поля
+                        userToUpdate.Username = UsernameBox.Text.Trim();  
                         userToUpdate.Email = EmailBox.Text.Trim();
                         userToUpdate.FirstName = FirstNameBox.Text.Trim();
                         userToUpdate.LastName = LastNameBox.Text.Trim();
@@ -65,7 +65,7 @@ namespace LibraryWPF
                         context.SaveChanges();
 
                         // Обновляем исходный объект _user
-                        _user.Username = userToUpdate.Username;  // Обновляем Username
+                        _user.Username = userToUpdate.Username;  
                         _user.Email = userToUpdate.Email;
                         _user.FirstName = userToUpdate.FirstName;
                         _user.LastName = userToUpdate.LastName;
@@ -110,7 +110,6 @@ namespace LibraryWPF
 
         private string HashPassword(string password)
         {
-            // В реальном приложении используйте надежное хеширование
             return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(password));
         }
 

@@ -43,28 +43,6 @@ namespace LibraryWPF
             LoadAuthors();
         }
 
-        private string GetConnectionString(string dbName)
-        {
-            return $"Server=.;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True;";
-        }
-
-        //private bool CheckDatabaseConnection()
-        //{
-        //    try
-        //    {
-        //        //using (var context = new LibraryDBContext(GetConnectionString(DatabaseName)))
-        //        using (var context = new LibraryDBContext())
-        //        {
-        //            return context.Database.CanConnect();
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show($"Ошибка подключения: {ex.Message}", "Ошибка",
-        //            MessageBoxButton.OK, MessageBoxImage.Error);
-        //        return false;
-        //    }
-        //}
 
         private void LoadAuthors()
         {

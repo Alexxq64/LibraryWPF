@@ -26,7 +26,7 @@ namespace LibraryWPF
         public LogRegWindow()
         {
             InitializeComponent();
-            _dbContext = new LibraryDBContext();  // Используем конструктор без параметров
+            _dbContext = new LibraryDBContext();
 
             // Заполняем логин и пароль из настроек
             LoginUsernameBox.Text = Properties.Settings.Default.LastUsername;

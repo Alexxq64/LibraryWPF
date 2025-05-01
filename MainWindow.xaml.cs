@@ -47,7 +47,7 @@ namespace LibraryWPF
 
             if (_currentUser.IsAdmin)
             {
-                var adminWindow = new AdminWindow(); // Используется конструктор без параметров
+                var adminWindow = new AdminWindow();
                 //var adminWindow = new AdminWindow(_dbContext);
                 adminWindow.Show();
                 Close();
@@ -76,7 +76,6 @@ namespace LibraryWPF
 
             try
             {
-                //if (DatabaseSettings.Instance.IsCreateNewDb)
                 if (DBTools.IsCreateNewDb)
                 {
                     CreateDatabase();
@@ -96,8 +95,6 @@ namespace LibraryWPF
 
         private void ConnectToExistingDatabase()
         {
-            //_currentDbName = DatabaseSettings.Instance.SelectedDbName;
-            //_dbContext = CreateDbContext();
             _dbContext = new LibraryDBContext();
 
             if (!_dbContext.Database.CanConnect())
@@ -111,12 +108,9 @@ namespace LibraryWPF
         {
             try
             {
-                //var dbName = DatabaseSettings.Instance.SelectedDbName;
-                //_dbContext = CreateDbContext();
                 _dbContext = new LibraryDBContext();
                 _dbContext.Database.EnsureCreated();
                 AddInitialData();
-                //_currentDbName = DBTools.DBName;
                 UpdateStatus($"База {DBTools.DBName} создана", "БД: создана");
             }
             catch (Exception ex)
@@ -124,20 +118,6 @@ namespace LibraryWPF
                 throw new Exception($"Ошибка создания БД: {ex.Message}", ex);
             }
         }
-
-        //private LibraryDBContext CreateDbContext()
-        //{
-        //    var dbName = DatabaseSettings.Instance.SelectedDbName;
-        //    var optionsBuilder = new DbContextOptionsBuilder<LibraryDBContext>();
-        //    optionsBuilder.UseSqlServer(GetConnectionString(dbName));
-        //    return new LibraryDBContext(optionsBuilder.Options);
-        //}
-
-
-        //private string GetConnectionString(string dbName)
-        //{
-        //    return $"Server=.;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True;";
-        //}
 
         private void LoadBooks()
         {

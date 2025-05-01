@@ -11,7 +11,6 @@ namespace LibraryWPF
             InitializeComponent();
         }
 
-        // Обработка кнопки OK
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
             DbName = DbNameTextBox.Text.Trim();

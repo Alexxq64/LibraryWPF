@@ -15,36 +15,103 @@ namespace LibraryWPF
             this.ContentRendered += (s, e) => InitializeWindow();
         }
 
+        private List<string> GetAvailableDatabases()
+        {
+            var databases = new List<string>();
+
+            try
+            {
+                // 1. Устанавливаем временно master
+                DBTools.DBName = "master";
+
+                // 2. Используем стандартный механизм создания подключения
+                using (var connection = DBTools.CreateConnection())
+                {
+                    connection.Open();
+
+                    string query = @"
+                SELECT name 
+                FROM sys.databases 
+                WHERE database_id > 4  -- исключаем системные базы
+                AND state = 0  -- только online базы
+                ORDER BY name";
+
+                    using (var command = new SqlCommand(query, connection))
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            databases.Add(reader["name"].ToString());
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при получении списка БД: {ex.Message}\n\n" +
+                              "Убедитесь, что:\n" +
+                              "1. SQL Server запущен\n" +
+                              "2. Разрешено подключение по Trusted_Connection",
+                              "Ошибка подключения",
+                              MessageBoxButton.OK,
+                              MessageBoxImage.Error);
+            }
+
+            return databases;
+        }
+
         private void InitializeWindow()
         {
             try
             {
-                // 1. Инициализация списка
-                ExistingDbComboBox.ItemsSource = new[] { "LibraryDB", "ArchiveDB (недоступно)", "TestDB (недоступно)" };
-                ExistingDbComboBox.SelectedIndex = 0;
-                UpdateControlsVisibility();
+                // Получаем список доступных баз данных
+                var availableDbs = GetAvailableDatabases();
 
-                // 2. Проверка подключения только к LibraryDB
-                string dbName = "LibraryDB"; // Жестко проверяем только основную БД
-                if (!DBTools.TestConnection(dbName))
+                // Настройка интерфейса
+                ExistingDbComboBox.ItemsSource = availableDbs;
+
+                if (availableDbs.Any())
                 {
-                    MessageBox.Show("Не удалось подключиться к основной базе LibraryDB",
-                                  "Ошибка подключения",
+                    ExistingDbComboBox.SelectedIndex = 0;
+                    UseExistingDbRadioButton.IsChecked = true;
+                }
+                else
+                {
+                    CreateNewDbRadioButton.IsChecked = true;
+                    MessageBox.Show("Не найдено пользовательских баз данных",
+                                  "Информация",
                                   MessageBoxButton.OK,
-                                  MessageBoxImage.Error);
-                    Application.Current.Shutdown();
-                    return;
+                                  MessageBoxImage.Information);
                 }
 
-                // 3. Сохраняем имя БД
-                DBTools.DBName = dbName;
+                UpdateControlsVisibility();
+
+                //// Если пользователь выбирает существующую БД
+                //if (UseExistingDbRadioButton.IsChecked == true && ExistingDbComboBox.SelectedItem != null)
+                //{
+                //    string selectedDb = ExistingDbComboBox.SelectedItem.ToString();
+
+                //    if (!DBTools.TestConnection(selectedDb))
+                //    {
+                //        MessageBox.Show($"Не удалось подключиться к базе {selectedDb}",
+                //                      "Ошибка подключения",
+                //                      MessageBoxButton.OK,
+                //                      MessageBoxImage.Error);
+                //        return;
+                //    }
+
+                //    DBTools.DBName = selectedDb;
+                //}
             }
-            catch
+            catch (Exception ex)
             {
+                MessageBox.Show($"Критическая ошибка: {ex.Message}",
+                              "Ошибка",
+                              MessageBoxButton.OK,
+                              MessageBoxImage.Error);
                 Application.Current.Shutdown();
             }
         }
-
         private void UpdateControlsVisibility()
         {
             if (NewDbNameTextBox == null || ExistingDbComboBox == null) return;
@@ -63,51 +130,21 @@ namespace LibraryWPF
             UpdateControlsVisibility();
         }
 
-        //private void OkButton_Click(object sender, RoutedEventArgs e)
-        //{
-        //    try
-        //    {
-        //        if (CreateNewDbRadioButton.IsChecked == true &&
-        //            string.IsNullOrWhiteSpace(NewDbNameTextBox.Text))
-        //        {
-        //            MessageBox.Show("Введите имя новой базы данных", "Ошибка",
-        //                MessageBoxButton.OK, MessageBoxImage.Warning);
-        //            return;
-        //        }
-
-        //        DatabaseSettings.Instance.IsCreateNewDb = CreateNewDbRadioButton.IsChecked == true;
-        //        DatabaseSettings.Instance.SelectedDbName = CreateNewDbRadioButton.IsChecked == true
-        //            ? NewDbNameTextBox.Text.Trim()
-        //            : ExistingDbComboBox.SelectedItem?.ToString();
-
-        //        var dbName = DatabaseSettings.Instance.SelectedDbName;
-        //        string connectionString = $"Server=localhost;Database={dbName};Trusted_Connection=True;TrustServerCertificate=True;";
-        //        LibraryWPF.Services.DbConnectionService.ConnectionString = connectionString;
-
-
-        //        DialogResult = true;
-        //        Close();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка",
-        //            MessageBoxButton.OK, MessageBoxImage.Error);
-        //        CloseApplication();
-        //    }
-        //}
-
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
             if (CreateNewDbRadioButton.IsChecked == true)
             {
-                // Получаем валидное имя (метод сам обрабатывает все повторы)
+                // Получаем валидное имя 
                 DBTools.DBName = ValidateDatabaseName();
-                //DatabaseSettings.Instance.IsCreateNewDb = CreateNewDbRadioButton.IsChecked == true;
-                DBTools.IsCreateNewDb = CreateNewDbRadioButton.IsChecked == true;
+                DBTools.IsCreateNewDb = true;
             }
-
-            //DatabaseSettings.Instance.SelectedDbName = DBTools.DBName;
-            //LibraryWPF.Services.DbConnectionService.ConnectionString = DBTools.ConnectionString;
+            else
+            {
+                
+                //string selectedDb = ExistingDbComboBox.SelectedItem.ToString();
+                DBTools.DBName = ExistingDbComboBox.SelectedItem.ToString();
+                DBTools.IsCreateNewDb = false;
+            }
             DialogResult = true;
             Close();
         }
@@ -132,8 +169,7 @@ namespace LibraryWPF
             //        continue;
             //    }
 
-            //MessageBox.Show(name);
-            return "LibraryDB"; // Возвращаем только валидное имя
+            return name; // Возвращаем только валидное имя
             //}
         }
 
@@ -144,7 +180,6 @@ namespace LibraryWPF
 
         private void CloseApplication()
         {
-            // Корректное завершение приложения
             Application.Current.Shutdown();
         }
     }
