@@ -21,7 +21,7 @@
                     <DataGrid Name="BooksGrid" AutoGenerateColumns="False" Margin="10" IsReadOnly="True" SelectionMode="Single">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Название" Binding="{Binding Title}" Width="*" />
-                            <DataGridTextColumn Header="Автор" Binding="{Binding Author.FullName}" Width="200" />
+                            <DataGridTextColumn Header="Авторы" Binding="{Binding AuthorsDisplay}" Width="200" />
                             <DataGridTextColumn Header="ISBN" Binding="{Binding ISBN}" Width="150" />
                         </DataGrid.Columns>
                     </DataGrid>
@@ -44,7 +44,7 @@
                               MouseDoubleClick="MyBooksGrid_MouseDoubleClick">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Название" Binding="{Binding Book.Title}" Width="*" />
-                            <DataGridTextColumn Header="Автор" Binding="{Binding Book.Author.FullName}" Width="200" />
+                            <DataGridTextColumn Header="Авторы" Binding="{Binding AuthorsDisplay}" Width="200" />
                             <DataGridTextColumn Header="Прогресс" Binding="{Binding ProgressPercent}" Width="100"/>
                             <DataGridTextColumn Header="Последнее чтение" Binding="{Binding LastReadDate}" Width="150"/>
                         </DataGrid.Columns>

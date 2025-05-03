@@ -63,5 +63,12 @@ public partial class Book
     [ForeignKey("BookID")]
     [InverseProperty("Books")]
     public virtual ICollection<Genre> Genres { get; set; } = new List<Genre>();
-    public string Text { get; set; } // просто добавляем в модель
+    public string Text { get; set; }
+
+    [NotMapped]
+    public string AuthorsDisplay =>
+        Authors != null && Authors.Any()
+            ? string.Join(", ", Authors.Select(a => $"{a.FirstName} {a.LastName}"))
+            : "Неизвестен";
+
 }

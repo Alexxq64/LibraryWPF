@@ -128,7 +128,7 @@ namespace LibraryWPF
                 if (TryLoadFromCache()) return;
 
                 var books = _dbContext.Books
-                    .Include(b => b.Author)
+                    .Include(b => b.Authors)
                     .OrderBy(b => b.Title)
                     .AsNoTracking()
                     .ToList();
@@ -149,18 +149,40 @@ namespace LibraryWPF
             {
                 var history = _dbContext.ReadingHistories
                     .Include(r => r.Book)
-                        .ThenInclude(b => b.Author)
+                        .ThenInclude(b => b.Authors)
                     .Where(r => r.UserID == _currentUser.UserID)
                     .OrderByDescending(r => r.LastReadDate ?? r.StartDate)
                     .ToList();
 
-                MyBooksGrid.ItemsSource = history;
+                // Преобразуем данные в BookViewModel для отображения
+                var booksWithAuthorsDisplay = history.Select(r => new BookViewModel
+                {
+                    Book = r.Book,
+                    AuthorsDisplay = string.Join(", ", r.Book.Authors.Select(a => $"{a.FirstName} {a.LastName}")),
+                    LastReadDate = r.LastReadDate
+                }).ToList();
+
+                MyBooksGrid.ItemsSource = booksWithAuthorsDisplay;
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"Ошибка загрузки \"моих книг\": {ex.Message}");
             }
         }
+
+
+        // Если в модели Book свойство называется BookId
+        public class BookViewModel
+        {
+            public Book Book { get; set; }
+            public string AuthorsDisplay { get; set; }
+            public int ProgressPercent { get; set; }
+            public DateTime? LastReadDate { get; set; }
+
+            // Используйте правильное название свойства, например BookId
+            public int BookID => Book?.BookID ?? 0; // Замените BookId на актуальное название
+        }
+
 
         private bool TryLoadFromCache()
         {
@@ -184,6 +206,13 @@ namespace LibraryWPF
             }
             ShowErrorMessage($"Ошибка загрузки данных: {ex.Message}");
         }
+
+        //private void HandleDataLoadingError(Exception ex)
+        //{
+        //    ShowErrorMessage($"Ошибка загрузки данных: {ex.Message}");
+        //    UpdateStatus("Ошибка загрузки", "БД: сбой");
+        //}
+
 
         private void AddInitialData()
         {
@@ -248,34 +277,57 @@ namespace LibraryWPF
 
         private void ReadMyBook_Click(object sender, RoutedEventArgs e)
         {
-            var selected = MyBooksGrid.SelectedItem as ReadingHistory;
-            if (selected?.Book == null || string.IsNullOrWhiteSpace(selected.Book.Text))
+            // Получаем выбранный объект BookViewModel
+            var selectedViewModel = MyBooksGrid.SelectedItem as BookViewModel;
+            if (selectedViewModel == null || selectedViewModel.Book == null || string.IsNullOrWhiteSpace(selectedViewModel.Book.Text))
             {
                 ShowErrorMessage("Нет текста для отображения.");
                 return;
             }
 
-            selected.LastReadDate = DateTime.Now;
-            _dbContext.SaveChanges();
+            // Используем BookID для работы с ReadingHistory
+            var readingHistory = _dbContext.ReadingHistories
+                .FirstOrDefault(r => r.UserID == _currentUser.UserID && r.BookID == selectedViewModel.BookID);
 
-            var window = new BookTextWindow(selected.Book.Text, selected.Book.Title);
-            window.ShowDialog();
+            if (readingHistory != null)
+            {
+                readingHistory.LastReadDate = DateTime.Now;
+                _dbContext.SaveChanges();
 
-            LoadMyBooks();
+                var window = new BookTextWindow(selectedViewModel.Book.Text, selectedViewModel.Book.Title);
+                window.ShowDialog();
+
+                LoadMyBooks(); // Перезагружаем список
+            }
+            else
+            {
+                ShowErrorMessage("Книга не найдена в истории.");
+            }
         }
 
         private void RemoveFromMyBooks_Click(object sender, RoutedEventArgs e)
         {
-            var selected = MyBooksGrid.SelectedItem as ReadingHistory;
-            if (selected == null)
+            var selectedViewModel = MyBooksGrid.SelectedItem as BookViewModel;
+            if (selectedViewModel == null || selectedViewModel.Book == null)
             {
                 ShowErrorMessage("Выберите книгу для удаления.");
                 return;
             }
 
-            _dbContext.ReadingHistories.Remove(selected);
-            _dbContext.SaveChanges();
-            LoadMyBooks();
+            // Используем BookID для работы с ReadingHistory
+            var readingHistory = _dbContext.ReadingHistories
+                .FirstOrDefault(r => r.UserID == _currentUser.UserID && r.BookID == selectedViewModel.BookID);
+
+            if (readingHistory != null)
+            {
+                _dbContext.ReadingHistories.Remove(readingHistory);
+                _dbContext.SaveChanges();
+                LoadMyBooks(); // Перезагружаем список
+            }
+            else
+            {
+                ShowErrorMessage("Книга не найдена в истории.");
+            }
         }
 
         private void BooksGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
