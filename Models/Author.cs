@@ -21,6 +21,9 @@ public partial class Author
     [StringLength(50)]
     public string LastName { get; set; }
 
+    [NotMapped]
+    public string FullName => $"{FirstName} {LastName}";
+
     public int? BirthYear { get; set; }
 
     [StringLength(50)]

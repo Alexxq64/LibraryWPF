@@ -21,20 +21,8 @@
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Название" Binding="{Binding Title}" />
                             <DataGridTextColumn Header="ISBN" Binding="{Binding ISBN}" />
-                            <DataGridTextColumn Header="Автор">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Text">
-                                            <Setter.Value>
-                                                <MultiBinding StringFormat="{}{0} {1}">
-                                                    <Binding Path="Author.FirstName" />
-                                                    <Binding Path="Author.LastName" />
-                                                </MultiBinding>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Автор" Binding="{Binding AuthorsDisplay}" />
+                            <!-- Привязка к AuthorsDisplay -->
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
@@ -50,7 +38,6 @@
                         <Button Content="Удалить" Width="80" Click="DeleteUserButton_Click"/>
                     </StackPanel>
 
-                    <!-- Таблица пользователей -->
                     <!-- Таблица пользователей -->
                     <DataGrid x:Name="UsersGrid" AutoGenerateColumns="False">
                         <DataGrid.Columns>

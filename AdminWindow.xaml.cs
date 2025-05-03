@@ -33,11 +33,25 @@ namespace LibraryWPF
 
         private void LoadBooks()
         {
-            //using (var context = new LibraryDBContext("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;"))
+            // Сохраняем выбранную книгу
+            var selectedBook = BooksGrid.SelectedItem as Book;
+
+            // Загружаем книги из базы данных
             using (var context = new LibraryDBContext())
             {
-                var books = context.Books.Include(b => b.Author).ToList();
-                BooksGrid.ItemsSource = books;
+                var books = context.Books.Include(b => b.Authors).ToList();
+                BooksGrid.ItemsSource = books;  // Обновляем источник данных
+            }
+
+            // Восстанавливаем выбранную книгу после обновления данных
+            if (selectedBook != null)
+            {
+                // Находим книгу в новом списке по ID
+                var bookToSelect = BooksGrid.Items.OfType<Book>().FirstOrDefault(b => b.BookID == selectedBook.BookID);
+                if (bookToSelect != null)
+                {
+                    BooksGrid.SelectedItem = bookToSelect;
+                }
             }
         }
 

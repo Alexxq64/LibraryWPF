@@ -2,35 +2,58 @@
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using LibraryWPF.Models;
+using System.Windows.Controls;
+using System.Windows;
 
 namespace LibraryWPF.Services
 {
     internal static class WPFTools
     {
-        public static List<Book> GetBooks(LibraryDBContext dbContext, string listType, User user = null)
+        private static void LoadBooks(
+            LibraryDBContext dbContext,
+            DataGrid booksGrid,
+            TextBlock statusText,
+            TextBlock dbStatusText,
+            string currentDbName)
         {
-            if (listType == "Library")
+            try
             {
-                return dbContext.Books
+                // Обновление статуса
+                statusText.Text = "Загрузка книг...";
+                dbStatusText.Text = "БД: подключение";
+
+                // Получаем книги из базы данных
+                var books = dbContext.Books
                     .Include(b => b.Authors)
                     .OrderBy(b => b.Title)
                     .AsNoTracking()
                     .ToList();
-            }
-            else if (listType == "MyBooks" && user != null)
-            {
-                return dbContext.ReadingHistories
-                    .Include(r => r.Book)
-                        .ThenInclude(b => b.Authors)
-                    .Where(r => r.UserID == user.UserID)
-                    .OrderByDescending(r => r.LastReadDate ?? r.StartDate)
-                    .Select(r => r.Book)
-                    .Distinct()
-                    .ToList();
-            }
 
-            return new List<Book>(); // пустой список на случай ошибок
+                // Обновление источника данных для DataGrid
+                booksGrid.ItemsSource = books;
+
+                // Обновление статуса
+                statusText.Text = $"Загружено {books.Count} книг";
+                dbStatusText.Text = $"БД: {currentDbName}";
+            }
+            catch (Exception ex)
+            {
+                // Обработка ошибок
+                HandleDataLoadingError(ex);
+            }
         }
+
+        private static void HandleDataLoadingError(Exception ex)
+        {
+            ShowErrorMessage($"Ошибка загрузки данных: {ex.Message}");
+            //UpdateStatus("Ошибка загрузки", "БД: сбой");
+        }
+
+        private static void ShowErrorMessage(string message)
+        {
+            MessageBox.Show(message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
     }
 }
 
