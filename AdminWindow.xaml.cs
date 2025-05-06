@@ -93,31 +93,40 @@ namespace LibraryWPF
                 return;
             }
 
-            var confirmResult = MessageBox.Show($"Вы уверены, что хотите удалить книгу \"{selectedBook.Title}\"?",
+            var confirmResult = MessageBox.Show(
+                $"Вы уверены, что хотите удалить книгу \"{selectedBook.Title}\"?",
                 "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
             if (confirmResult == MessageBoxResult.Yes)
             {
                 try
                 {
-                    //using (var context = new LibraryDBContext("Server=.;Database=LibraryDB;Trusted_Connection=True;TrustServerCertificate=True;"))
                     using (var context = new LibraryDBContext())
                     {
-                        // Перезапрашиваем книгу из текущего контекста по ID
-                        var bookToDelete = context.Books.Find(selectedBook.BookID);
+                        // Загружаем книгу вместе с её связями с авторами
+                        var bookToDelete = context.Books
+                            .Include(b => b.Authors)
+                            .FirstOrDefault(b => b.BookID == selectedBook.BookID);
+
                         if (bookToDelete != null)
                         {
+                            // Очищаем связи many-to-many с авторами
+                            bookToDelete.Authors.Clear();
+
+                            // Удаляем саму книгу
                             context.Books.Remove(bookToDelete);
                             context.SaveChanges();
                         }
                     }
 
-                    LoadBooks(); // Обновить список книг
+                    LoadBooks(); // Обновляем список
                     MessageBox.Show("Книга удалена.", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка при удалении: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(
+                        $"Ошибка при удалении: {ex.Message}\n\n{ex.InnerException?.Message}",
+                        "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }

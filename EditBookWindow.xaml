@@ -3,17 +3,21 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Редактирование книги" Height="720" Width="400"
         WindowStartupLocation="CenterScreen">
-    <Grid>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="20">
 
             <!-- Название книги -->
             <TextBlock Text="Название книги:" Margin="0,0,0,5"/>
             <TextBox x:Name="TitleTextBox" Width="300" Margin="0,0,0,15"/>
 
-            <!-- Автор -->
-            <TextBlock Text="Автор:" Margin="0,0,0,5"/>
-            <ComboBox x:Name="AuthorComboBox" Width="300" Margin="0,0,0,15"
-                      DisplayMemberPath="FullName" SelectedValuePath="Id"/>
+            <!-- Авторы -->
+            <TextBlock Text="Авторы:" Margin="0,0,0,5"/>
+            <ListBox x:Name="AuthorsListBox"
+                     Width="300"
+                     Height="100"
+                     Margin="0,0,0,15"
+                     DisplayMemberPath="FullName"
+                     SelectionMode="Extended" />
 
             <!-- ISBN книги -->
             <TextBlock Text="ISBN книги:" Margin="0,0,0,5"/>
@@ -21,7 +25,8 @@
 
             <!-- Описание книги -->
             <TextBlock Text="Описание книги:" Margin="0,0,0,5"/>
-            <TextBox x:Name="DescriptionTextBox" Width="300" Height="100" Margin="0,0,0,15" TextWrapping="Wrap" AcceptsReturn="True"/>
+            <TextBox x:Name="DescriptionTextBox" Width="300" Height="100" Margin="0,0,0,15"
+                     TextWrapping="Wrap" AcceptsReturn="True"/>
 
             <!-- Год публикации -->
             <TextBlock Text="Год публикации:" Margin="0,0,0,5"/>
@@ -36,13 +41,14 @@
 
             <!-- Текст книги -->
             <TextBlock Text="Текст книги:" Margin="0,0,0,5"/>
-            <TextBox x:Name="TextTextBox" Width="300" Height="100" Margin="0,0,0,15" TextWrapping="Wrap" AcceptsReturn="True"/>
+            <TextBox x:Name="TextTextBox" Width="300" Height="100" Margin="0,0,0,15"
+                     TextWrapping="Wrap" AcceptsReturn="True"/>
 
-            <!-- Кнопки -->
+            <!-- Кнопка для добавления или сохранения -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="AddBookButton" Content="Добавить" Width="80" Margin="5" Click="AddBookButton_Click"/>
-                <Button x:Name="SaveBookButton" Content="Сохранить" Width="80" Margin="5" Click="SaveBookButton_Click"/>
+                <Button x:Name="AddOrSaveButton" Content="Добавить" Width="80" Margin="5" Click="AddOrSaveButton_Click"/>
             </StackPanel>
+
         </StackPanel>
-    </Grid>
+    </ScrollViewer>
 </Window>
