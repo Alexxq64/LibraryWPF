@@ -55,15 +55,46 @@ namespace LibraryWPF
             }
         }
 
+        //private void AddBookButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    var addWindow = new EditBookWindow();
+        //    var result = addWindow.ShowDialog();
+        //    if (result == true)
+        //    {
+        //        LoadBooks(); // Обновить список после добавления
+        //    }
+        //}
+
         private void AddBookButton_Click(object sender, RoutedEventArgs e)
         {
-            var addWindow = new EditBookWindow();
+            var addWindow = new EditBookWindow(); // Передаем null (по умолчанию) для создания новой книги
             var result = addWindow.ShowDialog();
+
             if (result == true)
             {
-                LoadBooks(); // Обновить список после добавления
+                LoadBooks(); // Обновляем список книг после добавления
             }
         }
+
+
+
+        //private void EditBookButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    var selectedBook = BooksGrid.SelectedItem as Book;
+
+        //    if (selectedBook == null)
+        //    {
+        //        MessageBox.Show("Пожалуйста, выберите книгу для редактирования.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        //        return;
+        //    }
+
+        //    var editWindow = new EditBookWindow(selectedBook); 
+        //    var result = editWindow.ShowDialog();
+        //    if (result == true)
+        //    {
+        //        LoadBooks(); // Обновить список после редактирования
+        //    }
+        //}
 
         private void EditBookButton_Click(object sender, RoutedEventArgs e)
         {
@@ -75,13 +106,15 @@ namespace LibraryWPF
                 return;
             }
 
-            var editWindow = new EditBookWindow(selectedBook); 
+            var editWindow = new EditBookWindow(selectedBook.BookID); // передаём только ID книги
             var result = editWindow.ShowDialog();
+
             if (result == true)
             {
-                LoadBooks(); // Обновить список после редактирования
+                LoadBooks(); // Обновляем список книг после редактирования
             }
         }
+
 
         private void DeleteBookButton_Click(object sender, RoutedEventArgs e)
         {

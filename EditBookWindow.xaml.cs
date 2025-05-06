@@ -5,81 +5,153 @@ using System.Collections.Generic;
 using LibraryWPF.Models;
 using LibraryWPF.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Windows.Controls;
 
 namespace LibraryWPF
 {
     public partial class EditBookWindow : Window
     {
-        private readonly Book _book;
+        private Book _book;
         private readonly bool _isEditMode;
         private const string DatabaseName = "LibraryDB";
 
-        public EditBookWindow(Book? book = null)
+        //public EditBookWindow(Book? book = null)
+        //{
+        //    InitializeComponent();
+
+        //    if (book == null)
+        //    {
+        //        _isEditMode = false;  // Режим добавления
+        //        _book = new Book();
+        //        Title = "Добавить книгу";
+        //        AddOrSaveButton.Content = "Добавить";  // Кнопка будет называться "Добавить"
+        //    }
+        //    else
+        //    {
+        //        _isEditMode = true;  // Режим редактирования
+        //        _book = book;
+        //        Title = "Редактировать книгу";
+        //        AddOrSaveButton.Content = "Сохранить";  // Кнопка будет называться "Сохранить"
+
+        //        // Заполнение полей данными книги
+        //        TitleTextBox.Text = _book.Title;
+        //        ISBNTextBox.Text = _book.ISBN;
+        //        DescriptionTextBox.Text = _book.Description;
+        //        PublicationYearTextBox.Text = _book.PublicationYear?.ToString();
+        //        TotalPagesTextBox.Text = _book.TotalPages?.ToString();
+        //        IsFreeCheckBox.IsChecked = _book.IsFree;
+        //        TextTextBox.Text = _book.Text;
+        //    }
+
+        //    LoadAuthors();  // Загружаем авторов
+        //}
+
+        public EditBookWindow()
         {
             InitializeComponent();
 
-            if (book == null)
-            {
-                _isEditMode = false;  // Режим добавления
-                _book = new Book();
-                Title = "Добавить книгу";
-                AddOrSaveButton.Content = "Добавить";  // Кнопка будет называться "Добавить"
-            }
-            else
-            {
-                _isEditMode = true;  // Режим редактирования
-                _book = book;
-                Title = "Редактировать книгу";
-                AddOrSaveButton.Content = "Сохранить";  // Кнопка будет называться "Сохранить"
+            _isEditMode = false;
+            _book = new Book();
 
-                // Заполнение полей данными книги
-                TitleTextBox.Text = _book.Title;
-                ISBNTextBox.Text = _book.ISBN;
-                DescriptionTextBox.Text = _book.Description;
-                PublicationYearTextBox.Text = _book.PublicationYear?.ToString();
-                TotalPagesTextBox.Text = _book.TotalPages?.ToString();
-                IsFreeCheckBox.IsChecked = _book.IsFree;
-                TextTextBox.Text = _book.Text;
-            }
+            Title = "Добавить книгу";
+            AddOrSaveButton.Content = "Добавить";
 
-            LoadAuthors();  // Загружаем авторов
+            LoadAuthors();  // просто загружаем всех авторов
         }
+
+        public EditBookWindow(int bookId)
+        {
+            InitializeComponent();
+
+            _isEditMode = true;
+            Title = "Редактировать книгу";
+            AddOrSaveButton.Content = "Сохранить";
+
+            LoadBook(bookId);    // загружаем книгу и данные
+            LoadAuthors();       // загружаем всех авторов и выделяем нужных
+        }
+
+        private void LoadBook(int bookId)
+        {
+            using (var context = new LibraryDBContext())
+            {
+                _book = context.Books
+                               .Include(b => b.Authors)
+                               .FirstOrDefault(b => b.BookID == bookId);
+
+                if (_book != null)
+                {
+                    TitleTextBox.Text = _book.Title;
+                    ISBNTextBox.Text = _book.ISBN;
+                    DescriptionTextBox.Text = _book.Description;
+                    PublicationYearTextBox.Text = _book.PublicationYear?.ToString();
+                    TotalPagesTextBox.Text = _book.TotalPages?.ToString();
+                    IsFreeCheckBox.IsChecked = _book.IsFree;
+                    TextTextBox.Text = _book.Text;
+                }
+            }
+        }
+
+
+        //private void LoadAuthors()
+        //{
+        //    if (!DBTools.TestConnection()) return;
+
+        //    try
+        //    {
+        //        using (var context = new LibraryDBContext())
+        //        {
+        //            var authors = context.Authors.ToList();
+        //            AuthorsListBox.ItemsSource = authors;
+
+        //            if (_isEditMode)  // Если в режиме редактирования, загружаем авторов книги
+        //            {
+        //                var bookWithAuthors = context.Books
+        //                    .Include(b => b.Authors)
+        //                    .FirstOrDefault(b => b.BookID == _book.BookID);
+
+        //                if (bookWithAuthors != null)
+        //                {
+        //                    foreach (var author in bookWithAuthors.Authors)
+        //                    {
+        //                        var match = authors.FirstOrDefault(a => a.AuthorID == author.AuthorID);
+        //                        if (match != null)
+        //                            AuthorsListBox.SelectedItems.Add(match);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show($"Ошибка загрузки авторов: {ex.Message}", "Ошибка",
+        //            MessageBoxButton.OK, MessageBoxImage.Error);
+        //    }
+        //}
 
         private void LoadAuthors()
         {
-            if (!DBTools.TestConnection()) return;
-
-            try
+            using (var context = new LibraryDBContext())
             {
-                using (var context = new LibraryDBContext())
+                var authors = context.Authors.ToList();
+
+                AuthorsListBox.ItemsSource = authors;
+
+                if (_isEditMode)
                 {
-                    var authors = context.Authors.ToList();
-                    AuthorsListBox.ItemsSource = authors;
+                    var selectedIds = _book.Authors.Select(a => a.AuthorID).ToList();
 
-                    if (_isEditMode)  // Если в режиме редактирования, загружаем авторов книги
+                    foreach (var author in authors)
                     {
-                        var bookWithAuthors = context.Books
-                            .Include(b => b.Authors)
-                            .FirstOrDefault(b => b.BookID == _book.BookID);
-
-                        if (bookWithAuthors != null)
+                        if (selectedIds.Contains(author.AuthorID))
                         {
-                            foreach (var author in bookWithAuthors.Authors)
-                            {
-                                var match = authors.FirstOrDefault(a => a.AuthorID == author.AuthorID);
-                                if (match != null)
-                                    AuthorsListBox.SelectedItems.Add(match);
-                            }
+                            AuthorsListBox.SelectedItems.Add(author);
                         }
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка загрузки авторов: {ex.Message}", "Ошибка",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
         }
+
 
         private void AddOrSaveButton_Click(object sender, RoutedEventArgs e)
         {
@@ -89,7 +161,9 @@ namespace LibraryWPF
             {
                 using (var context = new LibraryDBContext())
                 {
-                    var selectedAuthors = AuthorsListBox.SelectedItems.Cast<Author>().ToList();
+                    //var selectedAuthors = AuthorsListBox.SelectedItems.Cast<Author>().ToList();
+                    var selectedAuthorIds = AuthorsListBox.SelectedItems.Cast<Author>().Select(a => a.AuthorID).ToList();
+                    var selectedAuthors = context.Authors.Where(a => selectedAuthorIds.Contains(a.AuthorID)).ToList();
 
                     if (_isEditMode)  // Если редактируем, обновляем книгу
                     {
@@ -147,6 +221,13 @@ namespace LibraryWPF
                 MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        //private void AuthorsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        //{
+        //    var selectedAuthors = AuthorsListBox.SelectedItems.Cast<Author>().ToList();
+        //    MessageBox.Show($"Выбрано авторов: {selectedAuthors.Count}", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+        //}
+
 
         private bool ValidateInputs()
         {
